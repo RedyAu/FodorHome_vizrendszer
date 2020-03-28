@@ -6,13 +6,17 @@
                 "C:\\Program Files (x86)\\Arduino\\tools\\**",
                 "C:\\Program Files (x86)\\Arduino\\hardware\\tools\\avr\\**",
                 "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\**",
-                "C:\\Users\\fodor\\OneDrive\\Dokumentumok\\_FodorHOME\\FodorHOME\\_libraries"
+                "C:\\Users\\fodor\\OneDrive\\Dokumentumok\\_FodorHOME\\FodorHOME\\_libraries\\**",
+                "C:\\Users\\fodor\\OneDrive\\Dokumentumok\\Arduino\\libraries\\**"
 
             ],
             "forcedInclude": [
                 "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\cores\\arduino\\Arduino.h"
             ],
-            "intelliSenseMode": "msvc-x64"
+            "intelliSenseMode": "msvc-x64",
+            "defines": [
+                "USBCON"
+            ]
         }
     ],
     "version": 4

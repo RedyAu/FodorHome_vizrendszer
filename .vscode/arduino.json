@@ -1,4 +1,6 @@
 {
     "board": "arduino:avr:uno",
-    "port": "COM3"
+    "port": "COM3",
+    "sketch": "_Testing\\RS485_test\\client_1\\rs_1.ino",
+    "output": "build"
 }
