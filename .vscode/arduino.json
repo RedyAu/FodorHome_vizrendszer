@@ -1,0 +1,6 @@
+{
+    "port": "COM5",
+    "board": "arduino:avr:uno",
+    "programmer": "AVRISP mkII",
+    "sketch": "_Testing\\RS485_test\\client_1\\rs_1.ino"
+}
