@@ -2,5 +2,5 @@
     "port": "COM5",
     "board": "arduino:avr:uno",
     "programmer": "AVRISP mkII",
-    "sketch": "_Testing\\RS485_test\\client_1\\rs_1.ino"
+    "sketch": "Vizrendszer\\vizrendszer_0.11.2.ino"
 }
