@@ -34,7 +34,7 @@ void tapFlowControl() {
   }
 
   if (millis() - tapFlowPressSequenceStarted > tapFlowSequenceMaximumTimeMillis) {
-    if (debug) Serial.println("Switch sequence stopped abruptly, ran out of time. Resetting...");
+    //if (debug) Serial.println("Switch sequence stopped abruptly, ran out of time. Resetting...");
     tapFlowSequenceReset();
   }
 }
@@ -89,7 +89,7 @@ void tapSwitchOff() {
 }
 
 void tapFlowSequenceReset() {
-  if (debug) Serial.println("Resetting tapFlow sequence...");
+  //if (debug) Serial.println("Resetting tapFlow sequence...");
   tapFlowSequenceDuring = 0;
   tapFlowSequenceSuccesful = 0;
   
