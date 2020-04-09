@@ -19,7 +19,7 @@
 
    1.0 - First operating version (future)
 */
-
+/*
 #include "allStop.h"
 #include "communicate.h"
 #include "continuityCheck.h"
@@ -30,7 +30,7 @@
 #include "waterLevel.h"
 #include "waterStart.h"
 #include "waterTasker.h"
-
+*/
 //Constants
 int waitToCool = 500;
 int tempTimerSt = 1;
