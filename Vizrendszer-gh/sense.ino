@@ -61,6 +61,7 @@ void sense() { //Read data from temperature and humidity sensors and write it to
     }
   }
 
+/*
   bool tapSwitchSt = digitalRead(tapFlowSwitch); //The switch being in the upper position means tapFlow
   if ((prevTapSwitchSt != tapSwitchSt) && (tapFlow != tapSwitchSt)) {
     prevTapSwitchSt = tapSwitchSt;
@@ -68,6 +69,8 @@ void sense() { //Read data from temperature and humidity sensors and write it to
     tapFlow = tapSwitchSt;
     Serial.println("Tap Switch Changed");
   }
+  */
+  tapFlowControl();
 
   determineUpper();
 

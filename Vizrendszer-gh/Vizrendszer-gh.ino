@@ -16,9 +16,11 @@
    0.10 - eeprom functionality implemented. Store if cooling and dumpToTap was active and store bufferTarget. bufferTreshold functionality removed. Cleaned up serial output.
    0.11 - Implemented capability to use a timer in place for the buffer tank's temperature sensor in case that breaks.
    0.11.2 - TapFlow only gets water from well
+   0.12 - Print version on init. Implement 3-part switch sequence to prevent accidental presses of tapFlowSwitch.
 
    1.0 - First operating version (future)
 */
+const String softwareVersion = "0.12";
 /*
 #include "allStop.h"
 #include "communicate.h"
@@ -39,8 +41,13 @@ const bool bufferTempDoTimer = true; ///////////////////////////////
 
 const bool debug = true;
 
-const bool relayON = LOW;
-const bool relayOFF = HIGH;
+#define relayON LOW
+#define relayOFF HIGH
+
+const int tapFlowSequenceMinimumTimeMillis = 300; //Least amont of time to finish the 3-part switch sequence
+const int tapFlowSequenceMaximumTimeMillis = 3000; //Most amont of time to finish the 3-part switch sequence
+const int tapFlowSequenceFirstDoneByMillis = 1000; //Most amount of time to turn of switch after first turned on to start 3-part switch sequence
+const unsigned long tapFlowShortDurationMillis = 30000; //Amount of time to do tapFlow when proper sequence is not initiated.
 
 const int bufferLvlLower = 40; //Pin number of lower water sensor of buffer tank
 const int bufferLvlUpper = 39; //Pin number of upper water sensor of buffer tank
@@ -107,7 +114,10 @@ void setup() {
     start libraries if needed */
 
   Serial.begin(9600);
-  if (debug) Serial.print("Initializing... ");
+  if (debug) {
+    Serial.println(softwareVersion);
+    Serial.print("Initializing... ");
+  }
 
   garazsaknaDHT.begin();
   udvarDHT.begin();

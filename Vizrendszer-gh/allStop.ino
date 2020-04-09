@@ -45,6 +45,7 @@ void allStop(bool userInit) {
   else Serial.print("0;");
 
   digitalWrite(mainPump, relayOFF);
+  digitalWrite(toDump, relayON); //To releive excess pressure
 
   delay(100);
 
