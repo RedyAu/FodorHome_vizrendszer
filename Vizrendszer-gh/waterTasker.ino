@@ -52,7 +52,7 @@ void waterTasker() {
       if (debug) Serial.println("debug waterTaskClear;");
 
       currentTask = 0;
-      allStop(false);
+      allStop(true);
     }
   }
 

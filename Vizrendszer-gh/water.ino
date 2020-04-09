@@ -10,7 +10,6 @@ bool emptyingToDump = false;
 bool flowPumpSt = false;
 
 void water() {
-
   if (isEmptying) { //If we should empty, first do it in watering tank, and if that's filled, continue to dump.
     if (waterLevel(1) < 2) {
       if (!emptyingToWatering) {

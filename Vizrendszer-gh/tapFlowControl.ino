@@ -1,6 +1,7 @@
 int tapFlowSequenceSuccesful;
 int tapFlowSequenceDuring;
 unsigned long tapFlowPressSequenceStarted;
+bool tapFlowShort;
 
 void tapFlowControl() {
   bool tapSwitch = digitalRead(tapFlowSwitch); //pullup means low = switch turned on (switch closed)
@@ -16,9 +17,9 @@ void tapFlowControl() {
     else tapSwitchOff();
   }
 
-  static bool tapFlowShort;
   static unsigned long tapFlowShortStart;
-  if (tapFlowSequenceDuring == 1 && (millis() - tapFlowPressSequenceStarted > tapFlowSequenceFirstDoneByMillis) && !tapFlow) {
+  unsigned long tapFlowFirstDuringDuration = millis() - tapFlowPressSequenceStarted;
+  if (tapFlowSequenceDuring == 1 && (tapFlowFirstDuringDuration > tapFlowSequenceFirstDoneByMillis) && !tapFlow) {
     if (debug) Serial.println("Ran out of time, starting short tapFlow");
     
     tapFlowShortStart = millis();
@@ -27,13 +28,16 @@ void tapFlowControl() {
     tapFlowSequenceReset();
   }
 
-  if (tapFlowShort && millis() - tapFlowShortStart > tapFlowShortDurationMillis && tapFlow) {
+  unsigned long tapFlowShortDuration = millis() - tapFlowShortStart;
+  if (tapFlowShort && tapFlowShortDuration > tapFlowShortDurationMillis && tapFlow) {
     if (debug) Serial.println("Short tapFlow over.");
     tapFlow = false;
+    tapFlowShort = false;
     tapFlowSequenceReset();
   }
 
-  if (millis() - tapFlowPressSequenceStarted > tapFlowSequenceMaximumTimeMillis) {
+  unsigned long tapFlowSequenceDuration = millis() - tapFlowPressSequenceStarted;
+  if (tapFlowSequenceDuration > tapFlowSequenceMaximumTimeMillis) {
     //if (debug) Serial.println("Switch sequence stopped abruptly, ran out of time. Resetting...");
     tapFlowSequenceReset();
   }
@@ -47,6 +51,7 @@ void tapSwitchOn() {
       if (debug) Serial.println("Listening for sequence...");
       tapFlowPressSequenceStarted = millis();
       tapFlowSequenceDuring = 1;
+      tapFlowShort = false;
       break;
     case 1:
       if (debug) Serial.println("2nd during");
