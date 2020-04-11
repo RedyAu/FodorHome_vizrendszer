@@ -17,10 +17,11 @@
    0.11 - Implemented capability to use a timer in place for the buffer tank's temperature sensor in case that breaks.
    0.11.2 - TapFlow only gets water from well
    0.12 - Print version on init. Implement 3-part switch sequence to prevent accidental presses of tapFlowSwitch.
+   0.12.1 - Faster response when starting water pumping, bugfixes
 
    1.0 - First operating version (future)
 */
-const String softwareVersion = "0.12";
+const String softwareVersion = "0.12.1";
 /*
 #include "allStop.h"
 #include "communicate.h"

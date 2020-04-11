@@ -40,9 +40,7 @@ void allStop(bool userInit) {
     tapFlow = false;
   }
 
-  Serial.print("off ");
-  if (userInit) Serial.print("1;");
-  else Serial.print("0;");
+  Serial.print(userInit ? "off 1;" : "off 0;");
 
   digitalWrite(mainPump, relayOFF);
   digitalWrite(toDump, relayON); //To releive excess pressure
