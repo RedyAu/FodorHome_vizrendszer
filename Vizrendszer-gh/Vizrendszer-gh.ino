@@ -47,7 +47,7 @@ const bool debug = true;
 const int tapFlowSequenceMinimumTimeMillis = 300; //Least amont of time to finish the 3-part switch sequence
 const int tapFlowSequenceMaximumTimeMillis = 3000; //Most amont of time to finish the 3-part switch sequence
 const int tapFlowSequenceFirstDoneByMillis = 1000; //Most amount of time to turn of switch after first turned on to start 3-part switch sequence
-const unsigned long tapFlowShortDurationMillis = 30000; //Amount of time to do tapFlow when proper sequence is not initiated.
+const unsigned long tapFlowShortDurationMillis = 30 * 1000; //Amount of time to do tapFlow when proper sequence is not initiated.
 
 const int bufferLvlLower = 40; //Pin number of lower water sensor of buffer tank
 const int bufferLvlUpper = 39; //Pin number of upper water sensor of buffer tank

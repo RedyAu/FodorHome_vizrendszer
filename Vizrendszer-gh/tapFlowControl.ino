@@ -4,7 +4,7 @@ unsigned long tapFlowPressSequenceStarted;
 bool tapFlowShort;
 
 void tapFlowControl() {
-  bool tapSwitch = digitalRead(tapFlowSwitch); //pullup means low = switch turned on (switch closed)
+  bool tapSwitch = digitalRead(tapFlowSwitch);
   
   static bool tapSwitchState;
   if (tapSwitch != tapSwitchState) {
