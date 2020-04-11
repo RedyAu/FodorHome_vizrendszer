@@ -7,9 +7,8 @@
 */
 
 bool waterStart(int from, int to) {
-  if (mainPump) {
+  if (digitalRead(mainPump) == relayON) {
     allStop(false);
-    delay(200);
   }
   switch (from) {
     case 0:
@@ -51,8 +50,8 @@ bool waterStart(int from, int to) {
   }
 
   continuityCheck();
-  delay(200);
-
+  delay(50);
+  
   digitalWrite(mainPump, relayON);
   Serial.print("mainPump 1;");
 

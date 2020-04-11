@@ -5,7 +5,7 @@ void continuityCheck() {
   else bool fromGarage = false;
 
   if (
-    digitalRead(mainPump) //When the main pump is running, at least one input and one output valve should be open.
+    digitalRead(mainPump) == relayON //When the main pump is running, at least one input and one output valve should be open.
     &&
     (((digitalRead(fromWell) ? 1 : 0) + (fromGarage ? 1 : 0)) == 0)
     ||
