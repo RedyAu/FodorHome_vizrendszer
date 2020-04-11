@@ -28,14 +28,14 @@ void waterTasker() {
 
     if (debug) Serial.println("debug waterTaskCooling;");
 
-    allStop(false);
+    if (currentTask != 0) allStop(false);
     currentTask = 1;
   }
   else if (dumping && currentTask != 3) {
 
     if (debug) Serial.println("debug waterTaskDump;");
 
-    allStop(false);
+    if (currentTask != 0) allStop(false);
     currentTask = 3;
   }
   
@@ -43,7 +43,7 @@ void waterTasker() {
 
     if (debug) Serial.println("debug waterTaskTap;");
 
-    allStop(false);
+    if (currentTask != 0) allStop(false);
     currentTask = 2;
   }
   else if ( ( (cooling ? 1 : 0) + (dumping ? 1 : 0) + (tapFlow ? 1 : 0) ) == 0) {

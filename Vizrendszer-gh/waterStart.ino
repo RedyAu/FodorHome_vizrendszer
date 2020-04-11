@@ -7,7 +7,7 @@
 */
 
 bool waterStart(int from, int to) {
-  if (digitalRead(mainPump) == relayON) {
+  if (!digitalRead(mainPump)) {
     allStop(false);
   }
   switch (from) {
