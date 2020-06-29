@@ -18,10 +18,11 @@
    0.11.2 - TapFlow only gets water from well
    0.12 - Print version on init. Implement 3-part switch sequence to prevent accidental presses of tapFlowSwitch.
    0.12.1 - Faster response when starting water pumping, bugfixes
+   0.12.2 - New pin definitions for system with watering built in
 
    1.0 - First operating version (future)
 */
-const String softwareVersion = "0.12.1";
+const String softwareVersion = "0.12.2";
 /*
 #include "allStop.h"
 #include "communicate.h"
@@ -55,21 +56,27 @@ const int bufferLvlUpper = 39; //Pin number of upper water sensor of buffer tank
 const int waterLvlLower = 41; //Pin number of lower water sensor of watering tank
 const int waterLvlUpper = A15; //Pin number of upper water sensor of watering tank
 const int groundWaterLvl = A14; //Pin number of groundwater-sensor
-
-const int fromWell = 33;
-const int fromGarage = 34;
-const int fromBuffer = 22;
-const int fromWatering = 23;
-const int toDumpO = 37; //original to dump
-/* */ int toDump;
-const int toBuffer = 24;
-const int toWatering = 25;
-const int toTap = 35;
-const int mainPump = 28;
-const int flowPump = 26;
 const int tapFlowSwitch = 49;
 
-byte output[] = {22, 23, 24, 25, 26, 28, 33, 34, 35, 37};
+const int fromWell = 26;
+const int fromGarage = 27;
+const int toTap = 30;
+const int toDumpO = 31; //to dump (changed in program to val of toTap when dumpToTap)
+/* */ int toDump;
+const int toGrey = 32;
+const int toPink = 33;
+const int toGreen = 34;
+const int toBlue = 35;
+const int toRed = 36;
+const int mainPump = 28;
+
+const int toBuffer = 24;
+const int toWatering = 25;
+const int fromBuffer = 22;
+const int fromWatering = 23;
+const int flowPump = 29;
+
+byte output[] = {22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37};
 byte input[] = {39, 40, 41, A13, A15};
 byte input_pullup[] = {49, 38};
 
