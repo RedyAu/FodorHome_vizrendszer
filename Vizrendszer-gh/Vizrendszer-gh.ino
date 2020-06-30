@@ -1,21 +1,20 @@
-/*
-   Written by Benedek Fodor in 2019
-   Versions: (first number: rolls with new feature | second number: rolls with programming session)
+/* Written by Benedek Fodor in 2019-2020
+   Versions:
    0.0 - Write out in plain text what the code should do
    0.1 - Main functions layed out to tabs
    0.2 - First succesful compile
    0.3 - Serial Communication Implemented
    0.4 - Sensors set up
    0.5 - Litter the whole thing with debug messages.
-   0.51 - Littered to the brim with debug.
-   0.52 - Litter removed
+   0.5.1 - Littered to the brim with debug.
+   0.5.2 - Litter removed
    0.6 - Individual valve commands
    0.7 - tapFlow now pulls from buffer too (1 buffer, 2 watering, 3 well)
    0.8 - New ultrasonic sensor now at the top of the buffer tank. tapFlowSwitch implemented. dumpToTap implemented.
    0.9 - dumpToTap now changeable while running with command. HouseKeep function implemented containing various useful code ran every loop. Initialisation wait implemented.
    0.10 - eeprom functionality implemented. Store if cooling and dumpToTap was active and store bufferTarget. bufferTreshold functionality removed. Cleaned up serial output.
    0.11 - Implemented capability to use a timer in place for the buffer tank's temperature sensor in case that breaks.
-   0.11.2 - TapFlow only gets water from well
+   0.11.2 - TapFlow only gets water from well (broken sensors during winter)
    0.12 - Print version on init. Implement 3-part switch sequence to prevent accidental presses of tapFlowSwitch.
    0.12.1 - Faster response when starting water pumping, bugfixes
    0.12.2 - New pin definitions for system with watering built in
