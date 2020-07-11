@@ -1,3 +1,4 @@
+
 /* Written by Benedek Fodor in 2019-2020
    Versions:
    0.0 - Write out in plain text what the code should do
