@@ -13,9 +13,16 @@ void sense() { //Read data from temperature and humidity sensors and write it to
     waterTemp.requestTemperatures();
 
     bufferTemp = waterTemp.getTempCByIndex(0);
-    if (bufferTemp < -10.0 || bufferTemp > 80.0) {
-      error(true, 1420);
-      bufferTemp = 0;
+    switch(int(bufferTemp * 10)) {
+      case -1270:
+        //sensor disconnected todo
+        error(1420);
+        break;
+      case 850:
+        //sensor connected but reading failed
+        error(1425);
+        bufferTemp = -127.0;
+        break;
     }
   }
 
@@ -71,4 +78,35 @@ void sense() { //Read data from temperature and humidity sensors and write it to
   else waterUpperChange = false;
 
   tapFlowControl();
+}
+
+int levelOf(int container) {
+  //0: puffer 1: watering
+  //return 0 if both sensors 0
+  //return 1 if bottom sensor 1
+  //return 2 if both sensors 1
+  bool upper = false;
+  bool lower = false;
+
+  if (container == 1) {//If we should get the level of watering tank
+    lower = waterLower; //If we have water on the lower sensor, store it
+    upper = waterUpper;
+  }
+  else { //Otherwise get data from buffer tank
+    lower = bufferLower; //If we have water on the lower sensor, store it
+    upper = bufferUpper;
+  }
+
+  if (!lower && !upper) return 0;
+  if (lower && !upper) return 1;
+  if (lower && upper) return 2;
+
+  if (!lower && upper) {
+    if (container) error(1300);
+    else {
+      return 0;
+      //error(true,1310);
+    }
+  }
+  return 0;
 }

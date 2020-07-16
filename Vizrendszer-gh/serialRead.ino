@@ -62,7 +62,7 @@ void parseCommand(String rawCommand) {
     }
 
     else if (command == "allStop") {
-      allStop(true);
+      //allStop(true); todo userinit stop?
     }
 
     else if (command == "dumping") {
@@ -91,8 +91,8 @@ void parseCommand(String rawCommand) {
     }
 
     else if (command == "start") {
-      allStop(true);
-      waterStart(holdFromS, holdToS);
+      //allStop(true); todo userinit stop?
+//      waterStart(holdFromS, holdToS);
     }
 
     else if (command == "bufferTarget") {
@@ -102,7 +102,7 @@ void parseCommand(String rawCommand) {
     }
 
     else if (command == "error") {
-      error(false, argument);
+      error(argument);
     }
 
     else if (command == "dumpToTap") {

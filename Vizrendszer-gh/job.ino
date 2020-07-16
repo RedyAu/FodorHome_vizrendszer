@@ -1,3 +1,158 @@
+/*Example
+  if (
+      stdJunct(
+        isWaterWatering,
+        (waterLevel > 0),
+        [] () {std::cout << "Starting...";},
+        [] () {std::cout << "Stopping...";}
+        )
+  ) std::cout << "Returning from code block...";
+  else std::cout << "Continuing...";
+ */
+bool stdJunct(bool isRunning, bool shouldRun, void Start(), void Stop()) {
+  switch (isRunning + shouldRun) {
+    case 0:
+      return Continue;
+    case 1:
+      if (shouldRun) {
+        Start();
+        return End;
+      }
+      else {
+        Stop();
+        return Continue;
+      }
+    case 2:
+      return End;
+  }
+}
+
+bool isBufferEmptying;
+bool isWateringEmptying;
+bool isWellTapFlow;
+
+bool tapAndDump() {
+  if (dumping && tapFlow) error(110);
+  
+  if (dumping) {
+    if (stdJunct(
+      isBufferEmptying,
+      (levelOf(Buffer) > 0),
+      [](){
+        currentJob = waterJob{NoStopNext, fromBuffer, toDump};
+        isBufferEmptying = true;
+        },
+      [](){
+        currentJob = waterJob{StopNext};
+        isBufferEmptying = false;
+        }
+      )
+    ) return End;
+  }
+
+  if (stdJunct(
+    isWateringEmptying,
+    (levelOf(Watering) > 0),
+    [](){
+      currentJob = waterJob{NoStopNext, fromWatering, tapFlow ? toTap : toDump};
+      isWateringEmptying = true;
+      },
+    [](){
+      currentJob = waterJob{StopNext};
+      isWateringEmptying = false;
+      }
+    )
+  ) return End;
+
+  if (dumping) {
+    dumping = false;
+    return Continue;
+  }
+
+  if (stdJunct(
+    isWellTapFlow,
+    tapFlow,
+    [](){
+      currentJob = waterJob{NoStopNext, fromWell, toTap};
+      isWellTapFlow = true;
+      },
+    [](){
+      currentJob = waterJob{StopNext};
+      isWellTapFlow = false;
+      }
+    )
+  ) return End;
+  
+  return Continue;
+}
+
+bool cool() {
+  static bool isBufferFilling;
+  if (!isBufferEmptying) {
+    //start filling buffer if not full if not currently emptying 
+    if (stdJunct(
+      isBufferFilling,
+      (levelOf(Buffer) < 2),
+      [](){
+        //start filling
+        },
+      [](){
+        //stop filling
+        }
+      )) return End;
+  } else {
+    //stop if empty or timer ran out or watering tank is full
+    if (fullEmpty) {
+      
+    }
+  }
+  //if watering tank full, start the öntözést az öntözőből - if emptied, stop - if already running, call water()
+  //start buffer emptying if temperature exceeded
+}
+
+bool water() {
+  //if not already running, calculate one unit time from duration and set weights - then continue
+  //if lastUpdate old, move startTime
+  //start current section based on startTime (rollover!! difference)
+  //if finished reached, running false
+  static unsigned long wateringStart;
+  unsigned long pastDuration; //name wip
+  static unsigned long lastUpdate;
+}
+
+void job() {
+  //Tap/Dump
+  if (tapAndDump()) return;
+  
+  //Cool
+  if (cool()) return;
+  
+  //Water
+  water();
+
+  //If end of tree reached, stop and reset.
+  currentJob = waterJob{StopNext};
+}
+
+/*
+ General structure
+wholeThing() {
+ if (doThis()) return;
+ doAfter();
+}
+
+ bool doThis() {
+  if (continueCondition) {
+    doSomething();
+    return continue;
+  } else {
+    doOtherStuff;
+    return end;
+  }
+ }
+ */
+
+/*
 const unsigned long bufferEmptyingTime = 150000;
 unsigned long forMillisEmptying = 0; //The target millis to stop at. Automatically calculated at start of emptying by adding prev constant to current millis()
 
@@ -37,7 +192,7 @@ void water() {
       if (debug) Serial.println("Circulation pump turned ON.");
 
       flowPumpSt = true;
-      digitalWrite(flowPump, relayON);
+      digitalWrite(flowPump, RelayOn);
     }
   }
   if (waterLevel(0) < 1 || !cooling) {
@@ -46,7 +201,7 @@ void water() {
       if (debug) Serial.println("Circulation pump turned OFF.");
 
       flowPumpSt = false;
-      digitalWrite(flowPump, relayOFF);
+      digitalWrite(flowPump, RelayOff);
     }
   }
 
@@ -59,7 +214,7 @@ void water() {
 
           if (debug) Serial.print("\n\nBuffer tank is full. Filling stopped.\n\n");
 
-          allStop(false); //stop filling it
+          jobStop(); //stop filling it
           isFilling = false;
 
           delay(200);
@@ -75,7 +230,7 @@ void water() {
             if (debug) Serial.print("\n\nBuffer tank emptying stopped. Tank empty.\nveryCool turned off, using timer next time.\n\n");
 
             isEmptying = false; //Stop emptying
-            allStop(false);
+            jobStop();
 
             veryCool = false; //Next time use timer.
 
@@ -90,7 +245,7 @@ void water() {
             if (debug) Serial.print("\n\nBuffer tank emptying stopped. Timer reached 0.\n\n");
 
             isEmptying = false;//Stop emptying
-            allStop(false);
+            jobStop();
 
             if (bufferTempDoTimer) tempTimerSt = 1;
             return;
@@ -185,10 +340,11 @@ void water() {
         isWaterEmptying = false;
         dumping = false;
         Serial.println("dumpDone 0;");
-        allStop(false);
+        jobStop();
         return;
       }
 
       break;
   }
-}
+  
+}*/

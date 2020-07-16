@@ -64,7 +64,7 @@ void tapSwitchOn() {
       else tapFlowSequenceReset();
       break;
     default:
-      error(true, 1500);
+      error(1500);
       tapFlowSequenceReset();
       break;
   }
@@ -87,7 +87,7 @@ void tapSwitchOff() {
       tapFlowSequenceDuring = 0;
       break;
     default:
-      error(true, 1510);
+      error(1510);
       tapFlowSequenceReset();
       break;
   }

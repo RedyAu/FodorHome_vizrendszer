@@ -1,18 +1,35 @@
-void error(bool local, int type) {
+void error(int type) {
   currentError = type;
 
   Serial.print("error ");
   Serial.print(type);
   Serial.print(";");
 
-  if (currentError > 999) return;
+  if (currentError > 999) return; //above 1000 are warnings
 
-  while (currentError != 0) {
-
-
-    delay(5000);
-
+  while (currentError != 0) { //alternate loop while critical error
+    sense();
+    job();
     serialRead();
   }
 
+}
+
+void continuityCheck() {
+  //if (debug) Serial.println("debug contiCheck;");
+
+  if (digitalRead(fromGarage) && (digitalRead(fromBuffer) || digitalRead(fromWatering))) bool fromGarage = true;
+  else bool fromGarage = false;
+
+  if (
+    (digitalRead(mainPump) == RelayOn //When the main pump is running, at least one input and one output valve should be open.
+    &&
+    ((digitalRead(fromWell) + fromGarage) == 0))
+    ||
+    (digitalRead(toBuffer) + digitalRead(toWatering) + digitalRead(toDump) + digitalRead(toTap) == 0))//todo watering sections
+  {
+    if (debug) Serial.println("debug contiCheckBAD;");
+    jobStop();
+    error(120);
+  }
 }

@@ -20,16 +20,20 @@
    0.12.1 - Faster response when starting water pumping, bugfixes
    0.12.2 - New pin definitions for system with watering built in
    0.13 - Restored IRL sensors, updated pins, cleaned up code. New capacitive water level sensor on waterUpper. Removed determineUpper() along with old waterUpper and groundWater sensors.
+   1.0 - Add watering sections to waterStart, rework it, make allStop part of it.
+         New system for tasks - no stopping of the pump when changing solanoid.
+         Whole task management rewritten, more functionality added.
+         File structure reworked.
 */
-#define softwareVersion "0.13"
+#define softwareVersion "1.0"
 
 //Constants
 const bool bufferTempDoTimer = false;
 
 const bool debug = true;
 
-#define relayON LOW
-#define relayOFF HIGH
+#define RelayOn LOW
+#define RelayOff HIGH
 
 const int tapFlowSequenceMinimumTimeMillis = 300; //Least amont of time to finish the 3-part switch sequence
 const int tapFlowSequenceMaximumTimeMillis = 3000; //Most amont of time to finish the 3-part switch sequence
@@ -48,9 +52,7 @@ const int fromWell = 26;
 const int fromGarage = 27;
 
 const int toTap = 30;
-const int toDumpO = 31; //to dump (changed in program to val of toTap when dumpToTap)
-/* */ int toDump;
-
+const int toDump = 31;
 const int toGrey = 32;
 const int toPink = 33;
 const int toGreen = 34;
@@ -64,14 +66,32 @@ const int fromBuffer = 22;
 const int fromWatering = 23;
 const int flowPump = 29;
 
+//Custom wording for clarity
+#define Buffer 0 //levelOf()
+#define Watering 1
+
+#define Continue false //program flow control of job()
+#define End true
+
+#define StopNext true //waterJob
+#define NoStopNext false
+
+struct waterJob {
+  bool stop;
+  int from;
+  int to;
+};
+waterJob currentJob;
+
+
 byte output[] = {22,23,24,25,30,31,32,33,34,35,36,37,26,27,28,29};
 byte input[] = {39,41,44,45,46};
 byte input_pullup[] = {47};
 
 //Globals
-bool isFilling, isEmptying, isWaterWatering, isWellWatering, isBufferWatering, isBufferEmptying, isWaterEmptying;
 
-bool cooling, tapFlow, dumping, dumpToTap, veryCool, begun = true;
+bool cooling, tapFlow, dumping, dumpToTap, fullEmpty, begun = true;
+unsigned long wateringDuration;
 
 float bufferTemp, wateringTemp;
 float udvarTemp, udvarHum, garAknTemp, garAknHum;
@@ -111,16 +131,20 @@ DallasTemperature waterTemp(&oneWire);
 //🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴
 
 void setup() {
-  
+  //Init debug serial
   Serial.begin(9600);
   if (debug) {
     Serial.println(softwareVersion);
     Serial.print("Initializing... ");
   }
+  //Init comms serial
+  //todo
 
+  //Init sensors
   udvarDHT.begin();
   waterTemp.begin();
 
+  //Init pins
   pinModeGroup(output, LEN(output), OUTPUT);
   digitalWriteGroup(output, LEN(output), HIGH);
 
@@ -133,8 +157,9 @@ void setup() {
   EEPROM.get(11, bufferTarget);
   EEPROM.get(12, dumpToTap);
 
+  //Wait for Initialization of Thermostat
   while (!begun) {
-    serialRead(); //Wait for Initialization of Thermostat inside
+    serialRead();
     Serial.print("wait 0;");
     sense();
     delay(1000);
@@ -144,49 +169,20 @@ void setup() {
 //🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  houseKeep();
+  serialRead();
   sense();
-  if (seconds > 5) waterTasker(); //Don't act in the first five seconds while sensors are initializing.
+  job();//todo
+  jobDo();
+  serialSend();//todo
+  
+//  everyTick();
+  
+  /*everyTick();
+  sense();
+  waterTasker(); //Don't act in the first five seconds while sensors are initializing.
   water();
+  waterDo();
 
   serialRead();
-  if (seconds > 5) sendData();
-}
-
-void houseKeep() { //Miscalennious things to do in each loop.  
-  if (millis() > forSecond) {
-    seconds++;
-    forSecond = millis() + 1000; //Second clock for longer timings. No need to worry about value resetting, unsigned long can hold 160 years worth of seconds.
-    everySecond();
-  }
-}
-
-void everySecond() { //Do stuff that doesn't need to be done every millisecond.
-  if (seconds == 5 && debug) Serial.print("Done!\n\n"); //End of initializing message.
-
-  if (dumpToTap) toDump = toTap; //Change dumping solanoid assignment.
-  else toDump = toDumpO;
-
-  if (bufferTempDoTimer) bufferTempDoTimerFunction();  
-}
-
-int waitToCool = 500;
-int tempTimerSt = 1;
-unsigned long tempTimerForSeconds;
-
-void bufferTempDoTimerFunction() {
-  switch(tempTimerSt) {
-      case 0: //prompt cooling
-        bufferTemp = 30.0;
-        break;
-      case 1: //water() refreshed buffer tank
-        tempTimerForSeconds = seconds + waitToCool;
-        tempTimerSt = 2;
-        break;
-      case 2: //waiting for timer
-        bufferTemp = 5.00;
-        if (seconds > tempTimerForSeconds) tempTimerSt = 0;
-        break;       
-    }
+  sendData();*/
 }

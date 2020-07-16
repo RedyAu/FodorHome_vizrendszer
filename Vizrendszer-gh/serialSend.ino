@@ -1,15 +1,15 @@
 unsigned long forSend;
 
-void sendData() { //Time different sending times
+void serialSend() { //Time different sending times
   if (forSend < millis()) {
     forSend = millis() + 2000;
 
     Serial.print("waterLevel ");
-    Serial.print(waterLevel(1));
+    Serial.print(levelOf(Watering));
     Serial.println(";");
 
     Serial.print("bufferLevel ");
-    Serial.print(waterLevel(0));
+    Serial.print(levelOf(Buffer));
     Serial.println(";");
 
     Serial.print("bufferTemp ");
