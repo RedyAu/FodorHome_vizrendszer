@@ -1,8 +1,3 @@
-/*struct structCurrentWaterTask { //Define a struct for current water task, with the nature and importance of it.
-  int task;
-  int importance;
-  } struct structCurrentWaterTask currentWaterTask; */
-
 int invalidTask = 0;
 
 int currentTask;
@@ -11,7 +6,7 @@ void waterTasker() {
   //if cooling is true and cooling task is not set, set it. (separate integer, not function call data)
 
   //if we should do multiple things at once, stop everything and throw and error. (if it was he case for three times)
-  if (((cooling ? 1 : 0) + (dumping ? 1 : 0) + (tapFlow ? 1 : 0)) > 1) {
+  if ((cooling + dumping + tapFlow) > 1) {
     invalidTask++;
 
     if (invalidTask > 2) {
@@ -46,7 +41,7 @@ void waterTasker() {
     if (currentTask != 0) allStop(false);
     currentTask = 2;
   }
-  else if ( ( (cooling ? 1 : 0) + (dumping ? 1 : 0) + (tapFlow ? 1 : 0) ) == 0) {
+  else if ((cooling + dumping + tapFlow) == 0) {
     if (currentTask != 0) {
 
       if (debug) Serial.println("debug waterTaskClear;");

@@ -40,7 +40,7 @@ void water() {
       digitalWrite(flowPump, relayON);
     }
   }
-  if (/*waterLevel(0) < 1 || */!cooling) {
+  if (waterLevel(0) < 1 || !cooling) {
     if (flowPumpSt) {
 
       if (debug) Serial.println("Circulation pump turned OFF.");
@@ -127,19 +127,7 @@ void water() {
     //🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴
 
     case 2: //Tap
-      /*if (waterLevel(0) > 0) { //Start with buffer
-        if (isBufferWatering) return;
-        else {
-
-          if (debug) Serial.println("debug tapStartBuffer");
-
-          isWaterWatering = false;
-          isWellWatering = false;
-          isBufferWatering = true;
-          waterStart(1, 1);
-        }
-      }
-      else if (waterLevel(1) > 0) { //If there is water in the buffer tank
+      if (waterLevel(1) > 0) { //If there is water in the buffer tank
         if (isWaterWatering) return; //If we're already watering, continue
         else { //Otherwise start watering
 
@@ -152,7 +140,7 @@ void water() {
           return;
         }
       }
-      else { //Otherwise*/
+      else { //Otherwise
         if (isWellWatering) return; //If we're watering from the well, continue
         else { //otherwise start it
 
@@ -164,7 +152,7 @@ void water() {
           waterStart(0, 1);
           return;
         }
-      //}
+      }
       break;
 
     //🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴

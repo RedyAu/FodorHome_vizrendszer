@@ -19,27 +19,12 @@
    0.12 - Print version on init. Implement 3-part switch sequence to prevent accidental presses of tapFlowSwitch.
    0.12.1 - Faster response when starting water pumping, bugfixes
    0.12.2 - New pin definitions for system with watering built in
+   0.13 - Restored IRL sensors, updated pins, cleaned up code. New capacitive water level sensor on waterUpper. Removed determineUpper() along with old waterUpper and groundWater sensors.
+*/
+#define softwareVersion "0.13"
 
-   1.0 - First operating version (future)
-*/
-const String softwareVersion = "0.12.2";
-/*
-#include "allStop.h"
-#include "communicate.h"
-#include "continuityCheck.h"
-#include "error.h"
-#include "sendData.h"
-#include "sense.h"
-#include "water.h"
-#include "waterLevel.h"
-#include "waterStart.h"
-#include "waterTasker.h"
-*/
 //Constants
-int waitToCool = 500;
-int tempTimerSt = 1;
-unsigned long tempTimerForSeconds;
-const bool bufferTempDoTimer = true; ///////////////////////////////
+const bool bufferTempDoTimer = false;
 
 const bool debug = true;
 
@@ -51,18 +36,21 @@ const int tapFlowSequenceMaximumTimeMillis = 3000; //Most amont of time to finis
 const int tapFlowSequenceFirstDoneByMillis = 1000; //Most amount of time to turn of switch after first turned on to start 3-part switch sequence
 const unsigned long tapFlowShortDurationMillis = 30 * 1000; //Amount of time to do tapFlow when proper sequence is not initiated.
 
-const int bufferLvlLower = 40; //Pin number of lower water sensor of buffer tank
-const int bufferLvlUpper = 39; //Pin number of upper water sensor of buffer tank
-const int waterLvlLower = 41; //Pin number of lower water sensor of watering tank
-const int waterLvlUpper = A15; //Pin number of upper water sensor of watering tank
-const int groundWaterLvl = A14; //Pin number of groundwater-sensor
-const int tapFlowSwitch = 49;
+const int bufferLvlLower = 45; //Pin number of lower water sensor of buffer tank
+const int bufferLvlUpper = 46; //Pin number of upper water sensor of buffer tank
+const int waterLvlLower = 44; //Pin number of lower water sensor of watering tank
+const int waterLvlUpper = 39; //Pin number of upper water sensor of watering tank
+const int tapFlowSwitch = 47; //Pulled up switch next to the tap.
+const int udvarDHTpin = 48; //WIP
+const int oneWireBus = 41; //One sensor connected: Water temperature sensor of Buffer tank
 
 const int fromWell = 26;
 const int fromGarage = 27;
+
 const int toTap = 30;
 const int toDumpO = 31; //to dump (changed in program to val of toTap when dumpToTap)
 /* */ int toDump;
+
 const int toGrey = 32;
 const int toPink = 33;
 const int toGreen = 34;
@@ -76,9 +64,9 @@ const int fromBuffer = 22;
 const int fromWatering = 23;
 const int flowPump = 29;
 
-byte output[] = {22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37};
-byte input[] = {39, 40, 41, A13, A15};
-byte input_pullup[] = {49, 38};
+byte output[] = {22,23,24,25,30,31,32,33,34,35,36,37,26,27,28,29};
+byte input[] = {39,41,44,45,46};
+byte input_pullup[] = {47};
 
 //Globals
 bool isFilling, isEmptying, isWaterWatering, isWellWatering, isBufferWatering, isBufferEmptying, isWaterEmptying;
@@ -94,6 +82,19 @@ int currentError;
 
 unsigned long seconds = 0, forSecond = 0;
 
+/*
+#include "allStop.h"
+#include "communicate.h"
+#include "continuityCheck.h"
+#include "error.h"
+#include "sendData.h"
+#include "sense.h"
+#include "water.h"
+#include "waterLevel.h"
+#include "waterStart.h"
+#include "waterTasker.h"
+*/
+
 //Initialize libraries
 
 #include <Utilities.h>
@@ -102,32 +103,21 @@ unsigned long seconds = 0, forSecond = 0;
 #include <DallasTemperature.h>
 #include <EEPROM.h>
 
-#define garazsaknaDHTpin 44
-#define udvarDHTpin 48
-DHT garazsaknaDHT(garazsaknaDHTpin, DHT11);
 DHT udvarDHT(udvarDHTpin, DHT11);
 
-#define oneWireBus 43
 OneWire oneWire(oneWireBus);
 DallasTemperature waterTemp(&oneWire);
 
-
+//🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴
 
 void setup() {
-  /*
-    Serial - debug
-    Serial1 - termosztát
-    handshake
-    settings receive
-    start libraries if needed */
-
+  
   Serial.begin(9600);
   if (debug) {
     Serial.println(softwareVersion);
     Serial.print("Initializing... ");
   }
 
-  garazsaknaDHT.begin();
   udvarDHT.begin();
   waterTemp.begin();
 
@@ -151,6 +141,8 @@ void setup() {
   }
 }
 
+//🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴
+
 void loop() {
   // put your main code here, to run repeatedly:
   houseKeep();
@@ -168,11 +160,23 @@ void houseKeep() { //Miscalennious things to do in each loop.
     forSecond = millis() + 1000; //Second clock for longer timings. No need to worry about value resetting, unsigned long can hold 160 years worth of seconds.
     everySecond();
   }
+}
 
-//Bad temp sensor
-  if (!bufferTempDoTimer) return;
-  else {
-    switch(tempTimerSt) {
+void everySecond() { //Do stuff that doesn't need to be done every millisecond.
+  if (seconds == 5 && debug) Serial.print("Done!\n\n"); //End of initializing message.
+
+  if (dumpToTap) toDump = toTap; //Change dumping solanoid assignment.
+  else toDump = toDumpO;
+
+  if (bufferTempDoTimer) bufferTempDoTimerFunction();  
+}
+
+int waitToCool = 500;
+int tempTimerSt = 1;
+unsigned long tempTimerForSeconds;
+
+void bufferTempDoTimerFunction() {
+  switch(tempTimerSt) {
       case 0: //prompt cooling
         bufferTemp = 30.0;
         break;
@@ -185,14 +189,4 @@ void houseKeep() { //Miscalennious things to do in each loop.
         if (seconds > tempTimerForSeconds) tempTimerSt = 0;
         break;       
     }
-  }
-  
-}
-
-void everySecond() { //Do stuff that doesn't need to be done every millisecond.
-  if (seconds == 5 && debug) Serial.print("Done!\n\n"); //End of initializing message.
-
-  if (dumpToTap) toDump = toTap; //Change dumping solanoid assignment.
-  else toDump = toDumpO;
-
 }

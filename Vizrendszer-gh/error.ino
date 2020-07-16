@@ -7,7 +7,7 @@ void error(bool local, int type) {
 
   if (currentError > 999) return;
 
-  while (error != 0) {
+  while (currentError != 0) {
 
 
     delay(5000);

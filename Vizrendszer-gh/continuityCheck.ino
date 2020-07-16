@@ -5,15 +5,13 @@ void continuityCheck() {
   else bool fromGarage = false;
 
   if (
-    digitalRead(mainPump) == relayON //When the main pump is running, at least one input and one output valve should be open.
+    (digitalRead(mainPump) == relayON //When the main pump is running, at least one input and one output valve should be open.
     &&
-    (((digitalRead(fromWell) ? 1 : 0) + (fromGarage ? 1 : 0)) == 0)
+    ((digitalRead(fromWell) + fromGarage) == 0))
     ||
-    (((digitalRead(toBuffer) ? 1 : 0) + (digitalRead(toWatering) ? 1 : 0) + (digitalRead(toDump) ? 1 : 0) + (digitalRead(toTap) ? 1 : 0) == 0))
-  ) {
-
+    (digitalRead(toBuffer) + digitalRead(toWatering) + digitalRead(toDump) + digitalRead(toTap) == 0))
+  {
     if (debug) Serial.println("debug contiCheckBAD;");
-
     allStop(false);
     error(true, 120);
   }

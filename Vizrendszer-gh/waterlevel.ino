@@ -11,7 +11,7 @@ int waterLevel(int container) {
     upper = waterUpper;
   }
   else { //Otherwise get data from buffer tank
-    lower = false;//bufferLower; //If we have water on the lower sensor, store it
+    lower = bufferLower; //If we have water on the lower sensor, store it
     upper = bufferUpper;
   }
 
@@ -20,10 +20,11 @@ int waterLevel(int container) {
   if (lower && upper) return 2;
 
   if (!lower && upper) {
-    if (container) error(true,1300);
+    if (container) error(true, 1300);
     else {
-      return 2;
+      return 0;
       //error(true,1310);
     }
   }
+  return 0;
 }
