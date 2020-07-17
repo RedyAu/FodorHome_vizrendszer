@@ -27,12 +27,19 @@ bool stdJunct(bool isRunning, bool shouldRun, void Start(), void Stop()) {
   }
 }
 
-bool isBufferEmptying;
-bool isWateringEmptying;
-bool isWellTapFlow;
-
 bool tapAndDump() {
-  if (dumping && tapFlow) error(110);
+  static bool isBufferEmptying;
+  static bool isWateringEmptying;
+  static bool isWellTapFlow;
+  
+  switch (dumping + tapFlow) {
+    case 0:
+      return Continue;
+      break;
+    case 2:
+      error(110);
+      break;
+  }
   
   if (dumping) {
     if (stdJunct(
@@ -86,8 +93,24 @@ bool tapAndDump() {
   return Continue;
 }
 
+
+
+void bufferEmptyStart() {
+      
+}
+void bufferEmptyStop() {
+    
+}
+
 bool cool() {
+  static bool isBufferEmptying;
+  static bool isWateringEmptying;
   static bool isBufferFilling;
+
+  if (!cool) return Continue;
+  
+  if (isWateringEmptying) water();
+  
   if (!isBufferEmptying) {
     //start filling buffer if not full if not currently emptying 
     if (stdJunct(
@@ -95,23 +118,39 @@ bool cool() {
       (levelOf(Buffer) < 2),
       [](){
         //start filling
+        isBufferFilling = true;
         },
       [](){
-        //stop filling
+        //stop filling //todo lastFilled too soon
+        isBufferFilling = false;
         }
       )) return End;
+      
   } else {
     //stop if empty or timer ran out or watering tank is full
+    if (levelOf(Watering) == 2) {
+      bufferEmptyStop();
+      beginWater();
+      return Continue;
+    }
     if (fullEmpty) {
-      
+      if (levelOf(Buffer) == 0) bufferEmptyStop();
+      else return End;
+    } else {
+      if (/*timer ran out*/) bufferEmptyStop();
+      else return End;
     }
   }
   //if watering tank full, start the öntözést az öntözőből - if emptied, stop - if already running, call water()
   //start buffer emptying if temperature exceeded
 }
 
+void beginWater(unsigned long duration) {
+  //calculate one unit time from duration and set weights - then continue
+}
+
 bool water() {
-  //if not already running, calculate one unit time from duration and set weights - then continue
+  //if haven't beginWater yet since last done, return. (?)
   //if lastUpdate old, move startTime
   //start current section based on startTime (rollover!! difference)
   //if finished reached, running false

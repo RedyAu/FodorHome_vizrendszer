@@ -90,11 +90,10 @@ byte input_pullup[] = {47};
 
 //Globals
 
-bool cooling, tapFlow, dumping, dumpToTap, fullEmpty, begun = true;
-unsigned long wateringDuration;
+bool cooling, tapFlow, dumping, fullEmpty, begun = true;
 
 float bufferTemp, wateringTemp;
-float udvarTemp, udvarHum, garAknTemp, garAknHum;
+float udvarTemp, udvarHum;
 
 float bufferTarget;
 
