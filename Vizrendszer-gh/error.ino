@@ -16,8 +16,6 @@ void error(int type) {
 }
 
 void continuityCheck() {
-  //if (debug) Serial.println("debug contiCheck;");
-
   if (digitalRead(fromGarage) && (digitalRead(fromBuffer) || digitalRead(fromWatering))) bool fromGarage = true;
   else bool fromGarage = false;
 
@@ -26,7 +24,7 @@ void continuityCheck() {
     &&
     ((digitalRead(fromWell) + fromGarage) == 0))
     ||
-    (digitalRead(toBuffer) + digitalRead(toWatering) + digitalRead(toDump) + digitalRead(toTap) == 0))//todo watering sections
+    (digitalRead(toBuffer) + digitalRead(toWatering) + digitalRead(toDump) + digitalRead(toTap) + digitalRead(toPink) + digitalRead(toGreen) + digitalRead(toBlue) + digitalRead(toRed) == 0))//todo watering sections
   {
     if (debug) Serial.println("debug contiCheckBAD;");
     jobStop();

@@ -1,59 +1,40 @@
 bool cool() {
-  static bool isBufferEmptying;
-  static bool isWateringEmptying;
-  static bool isBufferFilling;
-  static bool isFlowPump;
   static unsigned long bufferEmptyingStartTime;
   static unsigned long bufferLastFilled = 0;
+  static bool isBufferLastFilledActive = false;
   
   auto bufferEmptyStop = [](){
-    isBufferEmptying = false;
     fullEmpty = false;
     currentJob = waterJob{StopNext};
   };
 
-  stdJunct(
-    isFlowPump,
-    (cooling && levelOf(Buffer) > 0),
-    [](){
-      isFlowPump = true;
-      digitalWrite(flowPump, RelayOn);
-      },
-    [](){
-      isFlowPump = false;
-      digitalWrite(flowPump, RelayOff);
-      }
-  );
+  if (cooling && levelOf(Buffer) > 0) if (digitalRead(flowPump) == RelayOff) digitalWrite(flowPump, RelayOn);
+  else if (digitalRead(flowPump) == RelayOn) digitalWrite(flowPump, RelayOff);
 
   if (!cooling) return Continue;
   
-  if (!isBufferEmptying) {
+  if (!isBufferEmptying()) {
     //start filling buffer if not full if not currently emptying 
-    if (stdJunctAlwaysStart(
-      isBufferFilling,
-      (levelOf(Buffer) < 2),
-      [](){
-        currentJob = waterJob{NoStopNext, fromWell, toBuffer};
-        isBufferFilling = true;
-        },
-      [](){
-        currentJob = waterJob{StopNext};
-        isBufferFilling = false;
+    if (levelOf(Buffer) < 2) {
+      currentJob = waterJob{NoStopNext, fromWell, toBuffer};
+      return End;
+    } else {
+      currentJob = waterJob{StopNext};
+      if (isBufferFilling()) {
         bufferLastFilled = millis();
-        }
-      )) return End;
+        isBufferLastFilledActive = true;
+      }
+    }
 
-    if (isWateringEmptying) { //if watering is already running, return to run water()
+    if (isWateringEmptying()) { //if watering is already running, return to run water()
      if (levelOf(Watering) > 0) return Continue;
      else { //if emptied, stop
-       isWateringEmptying = false;
        currentJob = waterJob{StopNext};
      }
     }
 
     if (bufferTemp > bufferTreshold) { //start buffer emptying if temperature exceeded
-      isBufferEmptying = true;
-      if (millis() - bufferLastFilled < bufferFilledTooSoonTreshold) {
+      if ((millis() - bufferLastFilled < bufferFilledTooSoonTreshold) && isBufferLastFilledActive) {
         fullEmpty = true;
         if (debug) Serial.println("fullEmpty true");
       }
@@ -66,7 +47,6 @@ bool cool() {
     if (levelOf(Watering) == 2) { //if watering tank full, start the öntözést az öntözőből 
       bufferEmptyStop();
       beginWatering(1500);//todo measure empty time
-      isWateringEmptying = true;
       return Continue;
     }
     if (fullEmpty) { //stop if empty or timer ran out or watering tank is full

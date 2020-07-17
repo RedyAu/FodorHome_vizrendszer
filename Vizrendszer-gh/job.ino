@@ -9,7 +9,7 @@
   ) std::cout << "Returning from code block...";
   else std::cout << "Continuing...";
  */
-bool stdJunct(bool isRunning, bool shouldRun, void Start(), void Stop()) {
+/*bool stdJunct(bool isRunning, bool shouldRun, void Start(), void Stop()) {
   switch (isRunning + shouldRun) {
     case 0:
       return Continue;
@@ -43,71 +43,50 @@ bool stdJunctAlwaysStart(bool isRunning, bool shouldRun, void Start(), void Stop
       Start();
       return End;
   }
-}
+}*/
 
 bool tapAndDump() {
-  static bool isBufferEmptying;
-  static bool isWateringEmptying;
-  static bool isWellTapFlow;
-  
+  /* Combined function for getting water from tap and dumping from the tanks.
+   * Dumping empties both tanks and than finishes.
+   * Tap flow only empties watering tank, and than continues indefinetely from well.
+   */
   switch (dumping + tapFlow) {
-    case 0:
+    case 0: //return if neither feature is activated
       return Continue;
       break;
-    case 2:
-      error(110);
+    case 2: //if both are activated, drop dumping task and throw warning
+      error(1100);
+      dumping = false;
       break;
   }
   
   if (dumping) {
-    if (stdJunctAlwaysStart(
-      isBufferEmptying,
-      (levelOf(Buffer) > 0),
-      [](){
-        currentJob = waterJob{NoStopNext, fromBuffer, toDump};
-        isBufferEmptying = true;
-        },
-      [](){
-        currentJob = waterJob{StopNext};
-        isBufferEmptying = false;
-        }
-      )
-    ) return End;
+    if (levelOf(Buffer) > 0) {
+      currentJob = waterJob{NoStopNext, fromBuffer, toDump};
+      return End;
+    }
+    else currentJob = waterJob{StopNext};
   }
 
-  if (stdJunctAlwaysStart(
-    isWateringEmptying,
-    (levelOf(Watering) > 0),
-    [](){
-      currentJob = waterJob{NoStopNext, fromWatering, tapFlow ? toTap : toDump};
-      isWateringEmptying = true;
-      },
-    [](){
-      currentJob = waterJob{StopNext};
-      isWateringEmptying = false;
-      }
-    )
-  ) return End;
-
-  if (dumping) {
+  if (levelOf(Watering) > 0) {
+    currentJob = waterJob{NoStopNext, fromWatering, tapFlow ? toTap : toDump};
+    return End;
+  }
+  else currentJob = waterJob{StopNext};
+  
+  if (dumping) { //if both containers emptied, dumping task is done.
     dumping = false;
-    //todo dumping done
+    Serial.println("\nBoth containers empy, dumping task is done.");
     return Continue;
   }
+  //TapFlow continues from well after watering container is emptied.
 
-  if (stdJunctAlwaysStart(
-    isWellTapFlow,
-    tapFlow,
-    [](){
-      currentJob = waterJob{NoStopNext, fromWell, toTap};
-      isWellTapFlow = true;
-      },
-    [](){
-      currentJob = waterJob{StopNext};
-      isWellTapFlow = false;
-      }
-    )
-  ) return End;
+  if (tapFlow) {
+    currentJob = waterJob{NoStopNext, fromWell, toTap};
+    return End;
+  } else {
+    currentJob = waterJob{StopNext};
+  }
   
   return Continue;
 }
