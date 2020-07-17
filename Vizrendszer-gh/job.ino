@@ -73,6 +73,7 @@ bool tapAndDump() {
 
   if (dumping) {
     dumping = false;
+    //todo dumping done
     return Continue;
   }
 
@@ -94,22 +95,41 @@ bool tapAndDump() {
 }
 
 
-
-void bufferEmptyStart() {
-      
-}
-void bufferEmptyStop() {
-    
-}
-
 bool cool() {
   static bool isBufferEmptying;
   static bool isWateringEmptying;
   static bool isBufferFilling;
-
-  if (!cool) return Continue;
+  static bool isFlowPump;
+  static unsigned long bufferEmptyingStartTime;
+  static unsigned long bufferLastFilled;
   
-  if (isWateringEmptying) water();
+  auto bufferEmptyStop = [&](){
+    isBufferEmptying = false;
+    fullEmpty = false;
+    currentJob = waterJob{StopNext};
+  };
+
+  stdJunct(
+    isFlowPump,
+    (cooling && levelOf(Buffer) > 0),
+    [](){
+      isFlowPump = true;
+      digitalWrite(flowPump, RelayOn);
+      },
+    [](){
+      isFlowPump = false;
+      digitalWrite(flowPump, RelayOff);
+      }
+  );
+
+  if (!cooling) return Continue;
+  if (isWateringEmptying) { //if watering is already running, return to run water()
+    if (levelOf(Watering) > 0) return Continue;
+    else { //if emptied, stop
+      isWateringEmptying = false;
+      currentJob = waterJob{StopNext};
+    }
+  }
   
   if (!isBufferEmptying) {
     //start filling buffer if not full if not currently emptying 
@@ -121,28 +141,35 @@ bool cool() {
         isBufferFilling = true;
         },
       [](){
-        //stop filling //todo lastFilled too soon
         isBufferFilling = false;
+        bufferLastFilled = millis();
         }
       )) return End;
       
   } else {
-    //stop if empty or timer ran out or watering tank is full
-    if (levelOf(Watering) == 2) {
+    if (levelOf(Watering) == 2) { //if watering tank full, start the öntözést az öntözőből 
       bufferEmptyStop();
-      beginWater();
+      beginWater(1500);//todo measure empty time
+      isWateringEmptying = true;
       return Continue;
     }
-    if (fullEmpty) {
+    if (fullEmpty) { //stop if empty or timer ran out or watering tank is full
       if (levelOf(Buffer) == 0) bufferEmptyStop();
       else return End;
     } else {
-      if (/*timer ran out*/) bufferEmptyStop();
+      if (millis() - bufferEmptyingStartTime > bufferEmptyingDuration) bufferEmptyStop();
       else return End;
     }
+    if (bufferTemp > bufferTreshold) { //start buffer emptying if temperature exceeded
+      isBufferEmptying = true;
+      if (millis() - bufferLastFilled < bufferFilledTooSoonTreshold) fullEmpty = true;
+      bufferEmptyingStartTime = millis();
+      currentJob = waterJob{NoStopNext, fromBuffer, toWatering};
+      return End;
+    }
   }
-  //if watering tank full, start the öntözést az öntözőből - if emptied, stop - if already running, call water()
-  //start buffer emptying if temperature exceeded
+
+  return Continue;
 }
 
 void beginWater(unsigned long duration) {
@@ -159,7 +186,7 @@ bool water() {
   static unsigned long lastUpdate;
 }
 
-void job() {
+void job() { /////////////////////////////////////////////////////////////////
   //Tap/Dump
   if (tapAndDump()) return;
   
@@ -294,7 +321,7 @@ void water() {
       }
 
       if (waterLevel(0) == 2) { //If the buffer tank is filled
-        if (bufferTarget < bufferTemp) { //If the buffer temp exeeds the allowed limit
+        if (bufferTreshold < bufferTemp) { //If the buffer temp exeeds the allowed limit
 
           if (debug) Serial.print("\n\nTarget temperature exceeded. Starting emptying to ");
 

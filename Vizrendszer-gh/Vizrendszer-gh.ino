@@ -13,7 +13,7 @@
    0.7 - tapFlow now pulls from buffer too (1 buffer, 2 watering, 3 well)
    0.8 - New ultrasonic sensor now at the top of the buffer tank. tapFlowSwitch implemented. dumpToTap implemented.
    0.9 - dumpToTap now changeable while running with command. HouseKeep function implemented containing various useful code ran every loop. Initialisation wait implemented.
-   0.10 - eeprom functionality implemented. Store if cooling and dumpToTap was active and store bufferTarget. bufferTreshold functionality removed. Cleaned up serial output.
+   0.10 - eeprom functionality implemented. Store if cooling and dumpToTap was active and store bufferTreshold. bufferTreshold functionality removed. Cleaned up serial output.
    0.11 - Implemented capability to use a timer in place for the buffer tank's temperature sensor in case that breaks.
    0.11.2 - TapFlow only gets water from well (broken sensors during winter)
    0.12 - Print version on init. Implement 3-part switch sequence to prevent accidental presses of tapFlowSwitch.
@@ -28,12 +28,10 @@
 #define softwareVersion "1.0"
 
 //Constants
-const bool bufferTempDoTimer = false;
-
 const bool debug = true;
 
-#define RelayOn LOW
-#define RelayOff HIGH
+unsigned long bufferEmptyingDuration = 150000; //When temperature is exceeded, empty buffer tank this long before filling it again (milliseconds)(roughly 1/3rd of tank)
+unsigned long bufferFilledTooSoonTreshold = 60000; //When temperature exceeds the treshold again in this time after filling completed, empty than buffer completely (with 14°C water)
 
 const int tapFlowSequenceMinimumTimeMillis = 300; //Least amont of time to finish the 3-part switch sequence
 const int tapFlowSequenceMaximumTimeMillis = 3000; //Most amont of time to finish the 3-part switch sequence
@@ -76,6 +74,9 @@ const int flowPump = 29;
 #define StopNext true //waterJob
 #define NoStopNext false
 
+#define RelayOn LOW //optocoupler relays turn on when grounded
+#define RelayOff HIGH
+
 struct waterJob {
   bool stop;
   int from;
@@ -95,7 +96,7 @@ bool cooling, tapFlow, dumping, fullEmpty, begun = true;
 float bufferTemp, wateringTemp;
 float udvarTemp, udvarHum;
 
-float bufferTarget;
+float bufferTreshold;
 
 int currentError;
 
@@ -153,8 +154,7 @@ void setup() {
 
   //Read data stored in eeprom
   EEPROM.get(10, cooling);
-  EEPROM.get(11, bufferTarget);
-  EEPROM.get(12, dumpToTap);
+  EEPROM.get(11, bufferTreshold);
 
   //Wait for Initialization of Thermostat
   while (!begun) {

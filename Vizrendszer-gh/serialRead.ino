@@ -77,9 +77,9 @@ void parseCommand(String rawCommand) {
       EEPROM.put(10, cooling);
     }
 
-    else if (command == "veryCool") {
-      if (argument == 0) veryCool = false;
-      else veryCool = true;
+    else if (command == "fullEmpty") {
+      if (argument == 0) fullEmpty = false;
+      else fullEmpty = true;
     }
 
     else if (command == "fromS") {
@@ -91,29 +91,22 @@ void parseCommand(String rawCommand) {
     }
 
     else if (command == "start") {
-      //allStop(true); todo userinit stop?
-//      waterStart(holdFromS, holdToS);
+      currentJob = waterJob{NoStopNext, holdFromS, holdToS};
     }
 
-    else if (command == "bufferTarget") {
-      bufferTarget = argument;
-      bufferTarget /= 100;
-      EEPROM.put(11, bufferTarget);
+    else if (command == "bufferTreshold") {
+      bufferTreshold = argument;
+      bufferTreshold /= 100;
+      EEPROM.put(11, bufferTreshold);
     }
 
     else if (command == "error") {
       error(argument);
     }
 
-    else if (command == "dumpToTap") {
-      if (argument == 0) dumpToTap = false;
-      else dumpToTap = true;
-      EEPROM.put(12, dumpToTap);
-    }
-
-    else if (command == "bufferTargetNow") {
+    else if (command == "bufferTresholdNow") {
       Serial.print("\nCurrent buffer target is: ");
-      Serial.println(bufferTarget);
+      Serial.println(bufferTreshold);
     }
 
     else {
