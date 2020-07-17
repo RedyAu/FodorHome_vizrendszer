@@ -43,7 +43,7 @@ const int bufferLvlUpper = 46; //Pin number of upper water sensor of buffer tank
 const int waterLvlLower = 44; //Pin number of lower water sensor of watering tank
 const int waterLvlUpper = 39; //Pin number of upper water sensor of watering tank
 const int tapFlowSwitch = 47; //Pulled up switch next to the tap.
-const int udvarDHTpin = 48; //WIP
+const int udvarDHTpin = 48; //todo
 const int oneWireBus = 41; //One sensor connected: Water temperature sensor of Buffer tank
 
 const int fromWell = 26;
@@ -91,7 +91,7 @@ byte input_pullup[] = {47};
 
 //Globals
 
-bool cooling, tapFlow, dumping, fullEmpty, begun = true;
+bool cooling, tapFlow, dumping, fullEmpty, begun = true, initDone;
 
 float bufferTemp, wateringTemp;
 float udvarTemp, udvarHum;
@@ -170,9 +170,16 @@ void setup() {
 void loop() {
   serialRead();
   sense();
-  job();//todo
-  jobDo();
-  serialSend();//todo
+  job();
+  if (initDone) {
+    jobDo();
+    serialSend();
+  }
+
+  if (millis() > 6000 && !initDone) {
+    initDone = true;
+    Serial.println("Done!");
+  }
   
 //  everyTick();
   

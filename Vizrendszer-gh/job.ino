@@ -26,6 +26,24 @@ bool stdJunct(bool isRunning, bool shouldRun, void Start(), void Stop()) {
       return End;
   }
 }
+bool stdJunctAlwaysStart(bool isRunning, bool shouldRun, void Start(), void Stop()) {
+  switch (isRunning + shouldRun) {
+    case 0:
+      return Continue;
+    case 1:
+      if (shouldRun) {
+        Start();
+        return End;
+      }
+      else {
+        Stop();
+        return Continue;
+      }
+    case 2:
+      Start();
+      return End;
+  }
+}
 
 bool tapAndDump() {
   static bool isBufferEmptying;
@@ -42,7 +60,7 @@ bool tapAndDump() {
   }
   
   if (dumping) {
-    if (stdJunct(
+    if (stdJunctAlwaysStart(
       isBufferEmptying,
       (levelOf(Buffer) > 0),
       [](){
@@ -57,7 +75,7 @@ bool tapAndDump() {
     ) return End;
   }
 
-  if (stdJunct(
+  if (stdJunctAlwaysStart(
     isWateringEmptying,
     (levelOf(Watering) > 0),
     [](){
@@ -77,7 +95,7 @@ bool tapAndDump() {
     return Continue;
   }
 
-  if (stdJunct(
+  if (stdJunctAlwaysStart(
     isWellTapFlow,
     tapFlow,
     [](){
@@ -95,84 +113,9 @@ bool tapAndDump() {
 }
 
 
-bool cool() {
-  static bool isBufferEmptying;
-  static bool isWateringEmptying;
-  static bool isBufferFilling;
-  static bool isFlowPump;
-  static unsigned long bufferEmptyingStartTime;
-  static unsigned long bufferLastFilled;
-  
-  auto bufferEmptyStop = [&](){
-    isBufferEmptying = false;
-    fullEmpty = false;
-    currentJob = waterJob{StopNext};
-  };
-
-  stdJunct(
-    isFlowPump,
-    (cooling && levelOf(Buffer) > 0),
-    [](){
-      isFlowPump = true;
-      digitalWrite(flowPump, RelayOn);
-      },
-    [](){
-      isFlowPump = false;
-      digitalWrite(flowPump, RelayOff);
-      }
-  );
-
-  if (!cooling) return Continue;
-  if (isWateringEmptying) { //if watering is already running, return to run water()
-    if (levelOf(Watering) > 0) return Continue;
-    else { //if emptied, stop
-      isWateringEmptying = false;
-      currentJob = waterJob{StopNext};
-    }
-  }
-  
-  if (!isBufferEmptying) {
-    //start filling buffer if not full if not currently emptying 
-    if (stdJunct(
-      isBufferFilling,
-      (levelOf(Buffer) < 2),
-      [](){
-        //start filling
-        isBufferFilling = true;
-        },
-      [](){
-        isBufferFilling = false;
-        bufferLastFilled = millis();
-        }
-      )) return End;
-      
-  } else {
-    if (levelOf(Watering) == 2) { //if watering tank full, start the öntözést az öntözőből 
-      bufferEmptyStop();
-      beginWater(1500);//todo measure empty time
-      isWateringEmptying = true;
-      return Continue;
-    }
-    if (fullEmpty) { //stop if empty or timer ran out or watering tank is full
-      if (levelOf(Buffer) == 0) bufferEmptyStop();
-      else return End;
-    } else {
-      if (millis() - bufferEmptyingStartTime > bufferEmptyingDuration) bufferEmptyStop();
-      else return End;
-    }
-    if (bufferTemp > bufferTreshold) { //start buffer emptying if temperature exceeded
-      isBufferEmptying = true;
-      if (millis() - bufferLastFilled < bufferFilledTooSoonTreshold) fullEmpty = true;
-      bufferEmptyingStartTime = millis();
-      currentJob = waterJob{NoStopNext, fromBuffer, toWatering};
-      return End;
-    }
-  }
-
-  return Continue;
-}
-
-void beginWater(unsigned long duration) {
+void beginWatering(unsigned long duration) {
+  Serial.print("Beginning watering session for ");
+  Serial.println(duration);
   //calculate one unit time from duration and set weights - then continue
 }
 

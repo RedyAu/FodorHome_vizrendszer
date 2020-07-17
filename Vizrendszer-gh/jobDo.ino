@@ -21,7 +21,7 @@ void jobStop() {
 
 void jobDo() {
   static waterJob previousJob;
-  if (previousJob.stop == currentJob.stop && previousJob.from == currentJob.from && previousJob.to == currentJob.to) return;
+  if ((previousJob.stop == currentJob.stop) && (previousJob.from == currentJob.from) && (previousJob.to == currentJob.to)) return;
   previousJob = currentJob;
 
   if (currentJob.stop) {
@@ -29,41 +29,45 @@ void jobDo() {
     return;
   }
 
+  byte from[] = {fromWell, fromBuffer, fromWatering, fromGarage};
+  digitalWriteGroup(from, LEN(from), RelayOff);
   switch (currentJob.from) {
     case fromWell://From Well
       digitalWrite(fromWell, RelayOn);
-      Serial.print("fromS 0;");
+      Serial.print("fromS fromWell;");
       break;
     case fromBuffer://From Buffer
       digitalWrite(fromGarage, RelayOn);
       digitalWrite(fromBuffer, RelayOn);
-      Serial.print("fromS 1;");
+      Serial.print("fromS fromBuffer;");
       break;
     case fromWatering://From Watering
       digitalWrite(fromGarage, RelayOn);
       digitalWrite(fromWatering, RelayOn);
-      Serial.print("fromS 2;");
+      Serial.print("fromS fromWatering;");
       break;
     default:
       error(100);
   }
 
+  byte to[] = {toDump, toTap, toBuffer, toWatering, toPink, toGreen, toBlue, toRed};
+  digitalWriteGroup(to, LEN(to), RelayOff);
   switch (currentJob.to) {
     case toDump:
       digitalWrite(toDump, RelayOn);
-      Serial.print("toS 0;");
+      Serial.print("toS toDump;");
       break;
     case toTap:
       digitalWrite(toTap, RelayOn);
-      Serial.print("toS 1;");
+      Serial.print("toS toTap;");
       break;
     case toBuffer:
       digitalWrite(toBuffer, RelayOn);
-      Serial.print("toS 2;");
+      Serial.print("toS toBuffer;");
       break;
     case toWatering:
       digitalWrite(toWatering, RelayOn);
-      Serial.print("toS 3;");
+      Serial.print("toS toWatering;");
       break;
     case toPink:
       digitalWrite(toPink, RelayOn);

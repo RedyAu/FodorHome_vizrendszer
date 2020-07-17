@@ -63,6 +63,11 @@ void parseCommand(String rawCommand) {
 
     else if (command == "allStop") {
       //allStop(true); todo userinit stop?
+      currentJob = waterJob{StopNext};
+      cooling = false;
+      dumping = false;
+      tapFlow = false;
+      //todo stop/pause watering
     }
 
     else if (command == "dumping") {
