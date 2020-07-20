@@ -91,8 +91,6 @@ void jobDo() {
       error(101);
   }
 
-  continuityCheck();
-
   digitalWrite(mainPump, RelayOn);
   Serial.print("mainPump 1;");
 }

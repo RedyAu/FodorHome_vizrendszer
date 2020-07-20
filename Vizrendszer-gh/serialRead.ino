@@ -114,6 +114,10 @@ void parseCommand(String rawCommand) {
       Serial.println(bufferTreshold);
     }
 
+    else if (command == "beginWatering") {
+      beginWatering(argument, Normal);
+    }
+
     else {
       if (debug) {
         Serial.print("\n\nGot wrong command!!\n\n");

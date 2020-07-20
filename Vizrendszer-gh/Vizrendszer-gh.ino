@@ -77,6 +77,9 @@ const int flowPump = 29;
 #define RelayOn LOW //optocoupler relays turn on when grounded
 #define RelayOff HIGH
 
+#define Cooling true //wateringSession.purpose
+#define Normal false
+
 struct waterJob {
   bool stop;
   int from;
@@ -91,7 +94,7 @@ byte input_pullup[] = {47};
 
 //Globals
 
-bool cooling, tapFlow, dumping, fullEmpty, begun = true, initDone;
+bool cooling, tapFlow, dumping, fullEmpty, watering, wateringFinished = true, begun = true, initDone;//////////////////////
 
 float bufferTemp, wateringTemp;
 float udvarTemp, udvarHum;
