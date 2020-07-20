@@ -24,6 +24,7 @@
          New system for tasks - no stopping of the pump when changing solanoid.
          Whole task management rewritten, more functionality added.
          File structure reworked.
+         Implemented watering controller
 */
 #define softwareVersion "1.0"
 

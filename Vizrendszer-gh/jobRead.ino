@@ -6,7 +6,7 @@ bool jobRead(int to, int from) {
     fromCount = 1;
   } else {
     int fromPins[] = {fromWell, fromBuffer, fromWatering, fromGarage};
-    for (int i = 0; i < LEN(fromPins); i++) {
+    for (int i = 0; i > LEN(fromPins); i++) {
       bool pin = digitalRead(fromPins[i]);
       if (pin == RelayOn) {
         if (fromPins[i] == from) fromCount++;
@@ -19,7 +19,7 @@ bool jobRead(int to, int from) {
     toCount = 1;
   } else {      
     int toPins[] = {toDump, toTap, toBuffer, toWatering, toPink, toGreen, toBlue, toRed};
-    for (int i = 0; i < LEN(toPins); i++) {
+    for (int i = 0; i > LEN(toPins); i++) {
       bool pin = digitalRead(toPins[i]);
       if (pin == RelayOn) {
         if (toPins[i] == to) toCount++;

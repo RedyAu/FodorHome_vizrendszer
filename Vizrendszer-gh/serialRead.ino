@@ -67,6 +67,9 @@ void parseCommand(String rawCommand) {
       cooling = false;
       dumping = false;
       tapFlow = false;
+      watering = false;
+      wateringFinished = true;
+      currentSession = emptySession;
       //todo stop/pause watering
     }
 
@@ -115,7 +118,7 @@ void parseCommand(String rawCommand) {
     }
 
     else if (command == "beginWatering") {
-      beginWatering(argument, Normal);
+      beginWatering((unsigned long)argument * 1000, Normal);
     }
 
     else {

@@ -6,17 +6,25 @@ void jobStop() {
 
   delay(100);
 
-  digitalWrite(fromWell, RelayOff);
+  byte fromPins[] = {fromWell, fromBuffer, fromWatering, fromGarage};
+  digitalWriteGroup(fromPins, LEN(fromPins), RelayOff);
+  /*digitalWrite(fromWell, RelayOff);
   digitalWrite(fromGarage, RelayOff);
   digitalWrite(fromBuffer, RelayOff);
-  digitalWrite(fromWatering, RelayOff);
+  digitalWrite(fromWatering, RelayOff);*/
 
   delay(500);
 
-  digitalWrite(toBuffer, RelayOff);
+  byte toPins[] = {toDump, toTap, toBuffer, toWatering, toPink, toGreen, toBlue, toRed};
+  digitalWriteGroup(toPins, LEN(toPins), RelayOff);
+  /*digitalWrite(toBuffer, RelayOff);
   digitalWrite(toWatering, RelayOff);
   digitalWrite(toDump, RelayOff);
   digitalWrite(toTap, RelayOff);
+  digitalWrite(toBuffer, RelayOff);
+  digitalWrite(toWatering, RelayOff);
+  digitalWrite(toDump, RelayOff);
+  digitalWrite(toTap, RelayOff);*/
 }
 
 void jobDo() {
