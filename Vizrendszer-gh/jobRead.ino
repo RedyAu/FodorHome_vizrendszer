@@ -1,11 +1,11 @@
-bool jobRead(int to, int from) {
+bool jobRead(int from, int to) {
   int fromCount = 0;
   int toCount = 0;
 
   if (from == 0) {
     fromCount = 1;
   } else {
-    int fromPins[] = {fromWell, fromBuffer, fromWatering, fromGarage};
+    int fromPins[] = {fromWell, fromBuffer, fromWatering};
     for (int i = 0; i < LEN(fromPins); i++) {
       bool pin = digitalRead(fromPins[i]);
       if (pin == RelayOn) {

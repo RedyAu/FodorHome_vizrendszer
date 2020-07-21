@@ -3,10 +3,6 @@ unsigned long forSend;
 void serialSend() { //Time different sending times
   if (forSend < millis()) {
     forSend = millis() + 2000;
-
-
-    Serial.println(isBufferFilling() ? "Buffer filling" : "Not filling");
-    Serial.println(isBufferEmptying() ? "Buffer emptying" : "Not emptying");
     /*
         Serial.print("waterLevel ");
         Serial.print(levelOf(Watering));

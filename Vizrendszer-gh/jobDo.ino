@@ -3,7 +3,7 @@ void jobStop() {
 
   digitalWrite(mainPump, RelayOff);
   
-  digitalWrite(toDump, RelayOn); //To releive excess pressure
+  //digitalWrite(toDump, RelayOn); //To releive excess pressure
 
   delay(100);
 

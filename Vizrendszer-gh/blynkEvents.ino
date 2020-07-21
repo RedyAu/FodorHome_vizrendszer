@@ -6,7 +6,7 @@ void blynkSync() {
   Blynk.virtualWrite(fromBuffer, (digitalRead(fromBuffer) == RelayOn) ? 255 : 0);
   Blynk.virtualWrite(fromWatering, (digitalRead(fromWatering) == RelayOn) ? 255 : 0);
   Blynk.virtualWrite(fromWell, (digitalRead(fromWell) == RelayOn) ? 255 : 0);
-  
+
   Blynk.virtualWrite(toDump, (digitalRead(toDump) == RelayOn) ? 255 : 0);
   Blynk.virtualWrite(toTap, (digitalRead(toTap) == RelayOn) ? 255 : 0);
   Blynk.virtualWrite(toBuffer, (digitalRead(toBuffer) == RelayOn) ? 255 : 0);
@@ -43,7 +43,16 @@ void blynkSync() {
   //Update watering progress
   long double wateringProgressRatio = (long double)currentSession.elapsedTime / (long double)currentSession.duration;
   long double wateringProgress = (long double)1024 * wateringProgressRatio;
-  Blynk.virtualWrite(V2, (int)wateringProgress);
+  Blynk.virtualWrite(V60, (int)wateringProgress);
+
+  static bool heartbeat;
+  if (!heartbeat) {
+    Blynk.virtualWrite(V104, 255);
+    heartbeat = true;
+  } else {
+    Blynk.virtualWrite(V104, 0);
+    heartbeat = false;
+  }
 }
 
 BLYNK_CONNECTED() {

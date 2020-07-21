@@ -9,7 +9,7 @@ struct wateringZone {
 const wateringZone zones[] = {
   {toPink, 10},
   {toGreen, 16},
-  {toBlue, 28}//, //todo
+  {toBlue, 28}//,
   //{toRed, 12}
 };
 
@@ -110,17 +110,4 @@ bool water() {
     }
     j++;
   }
-  /*
-    for (int j; j < LEN(zones); j++) {
-    Serial.println("Water F1");
-    tempCurrentUnit - zones[j].weight;
-    Serial.println("Water F2");
-    if (tempCurrentUnit < 0) {
-      currentJob = {NoStopNext, ((levelOf(Watering) > 0) ? fromWatering : fromWell), zones[j].id};
-      Serial.println("Water G");
-      return End;
-      break;
-    }
-    }*/
-  Serial.println("Water E");
 }

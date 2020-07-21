@@ -7,10 +7,18 @@ bool cool() {
     fullEmpty = false;
     currentJob = waterJob{StopNext};
   };
-/*
-  if (cooling && levelOf(Buffer) > 0) if (digitalRead(flowPump) == RelayOff) digitalWrite(flowPump, RelayOn);
-  else if (digitalRead(flowPump) == RelayOn) digitalWrite(flowPump, RelayOff);
-*/
+
+  if (cooling && levelOf(Buffer) > 0) {
+    if (digitalRead(flowPump) == RelayOff) {
+      digitalWrite(flowPump, RelayOn);
+      Serial.print(1);
+    }
+  }
+  else if (digitalRead(flowPump) == RelayOn) {
+    digitalWrite(flowPump, RelayOff);
+    Serial.print(0);
+  }
+
   if (!cooling) return Continue;
   
   if (!isBufferEmptying()) {
