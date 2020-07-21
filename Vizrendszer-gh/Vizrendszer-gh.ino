@@ -31,8 +31,9 @@
 //Constants
 const bool debug = true;
 
-unsigned long bufferEmptyingDuration = 150000; //When temperature is exceeded, empty buffer tank this long before filling it again (milliseconds)(roughly 1/3rd of tank)
-unsigned long bufferFilledTooSoonTreshold = 60000; //When temperature exceeds the treshold again in this time after filling completed, empty than buffer completely (with 14°C water)
+const int blynkSyncRate = 1000; //Sync values every second
+const unsigned long bufferEmptyingDuration = 150000; //When temperature is exceeded, empty buffer tank this long before filling it again (milliseconds)(roughly 1/3rd of tank)
+const unsigned long bufferFilledTooSoonTreshold = 60000; //When temperature exceeds the treshold again in this time after filling completed, empty than buffer completely (with 14°C water)
 
 const int tapFlowSequenceMinimumTimeMillis = 300; //Least amont of time to finish the 3-part switch sequence
 const int tapFlowSequenceMaximumTimeMillis = 3000; //Most amont of time to finish the 3-part switch sequence
@@ -103,7 +104,7 @@ wateringSession currentSession;
 const wateringSession emptySession = {0,0,0,0,0,Normal};
 
 
-byte output[] = {22,23,24,25,30,31,32,33,34,35,36,37,26,27,28,29,SDCARD_CS};
+byte output[] = {22,23,24,25,30,31,32,33,34,35,36,37,26,27,28,29};
 byte input[] = {39,41,44,45,46};
 byte input_pullup[] = {47};
 
@@ -186,6 +187,9 @@ void setup() {
   EEPROM.get(10, cooling);
   EEPROM.get(11, bufferTreshold);
 
+  pinMode(SDCARD_CS, OUTPUT);
+  //digitalWrite(SDCARD_CS, HIGH);
+
   setSyncInterval(10 * 60); //Sync time from blynk every 10 min (?)
 }
 
@@ -198,7 +202,11 @@ void loop() {
   if (initDone) {
     jobDo();
     serialSend();
-    blynkSync();
+    static unsigned long lastBlynkSync;
+    if ((millis() - lastBlynkSync) > 1000) {
+      blynkSync();
+      lastBlynkSync = millis();
+    }
   }
   if (initDone) {
     Blynk.run();

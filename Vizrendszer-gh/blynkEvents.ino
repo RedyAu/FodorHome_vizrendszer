@@ -1,10 +1,17 @@
 void blynkSync() {
-  int relays[] = {fromWell, fromBuffer, fromWatering, fromGarage,
+  Serial.println("Sync...");
+  const int relays[] = {fromWell, fromBuffer, fromWatering, fromGarage,
                 toDump, toTap, toBuffer, toWatering, toPink, toGreen, toBlue, toRed,
-                mainPump, flowPump};
-  for (int i; i < LEN(relays); i++) { //Send state of every relay for display in the app (i hope)
+                mainPump};
+
+  Serial.print(digitalRead(mainPump) == RelayOn);
+  
+  for (int i = 0; i < LEN(relays); i++) { //Send state of every relay for display in the app (i hope)
     Blynk.virtualWrite(i, ((digitalRead(relays[i]) == RelayOn) ? 255 : 0));
+    Serial.print(", ");
   }
+  Serial.println(" end");
+  
 
   Blynk.virtualWrite(V40, levelOf(Buffer));
   Blynk.virtualWrite(V41, levelOf(Watering));
