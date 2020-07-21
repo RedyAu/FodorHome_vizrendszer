@@ -1,4 +1,3 @@
-
 /* Written by Benedek Fodor in 2019-2020
    Versions:
    0.0 - Write out in plain text what the code should do
@@ -25,6 +24,7 @@
          Whole task management rewritten, more functionality added.
          File structure reworked.
          Implemented watering controller
+         Implemented Blynk Ethernet control
 */
 #define softwareVersion "1.0"
 
@@ -81,6 +81,9 @@ const int flowPump = 29;
 #define Cooling true //wateringSession.purpose
 #define Normal false
 
+#define W5100_CS  10
+#define SDCARD_CS 4
+
 struct waterJob {
   bool stop;
   int from;
@@ -88,8 +91,19 @@ struct waterJob {
 };
 waterJob currentJob;
 
+struct wateringSession {
+  unsigned long duration;
+  unsigned long startTime;
+  unsigned long lastAlive;
+  unsigned long elapsedTime;
+  int currentUnit;
+  bool purpose;
+};
+wateringSession currentSession;
+const wateringSession emptySession = {0,0,0,0,0,Normal};
 
-byte output[] = {22,23,24,25,30,31,32,33,34,35,36,37,26,27,28,29};
+
+byte output[] = {22,23,24,25,30,31,32,33,34,35,36,37,26,27,28,29,SDCARD_CS};
 byte input[] = {39,41,44,45,46};
 byte input_pullup[] = {47};
 
@@ -119,8 +133,21 @@ unsigned long seconds = 0, forSecond = 0;
 #include "waterTasker.h"
 */
 
+// BLYNK
+#define BLYNK_PRINT Serial
+#include <SPI.h>
+#include <Ethernet.h>
+#include <BlynkSimpleEthernet.h>
+char auth[] = "fngkJqhTaCdhVm4QD9gle68xb4Fm9856";
+
+#include <WidgetRTC.h>
+
+WidgetRTC rtc;
+
 //Initialize libraries
 
+#include <TimeLib.h>
+#include <Chronos.h>
 #include <Utilities.h>
 #include <DHT.h>
 #include <OneWire.h>
@@ -150,23 +177,16 @@ void setup() {
 
   //Init pins
   pinModeGroup(output, LEN(output), OUTPUT);
-  digitalWriteGroup(output, LEN(output), HIGH);
+  digitalWriteGroup(output, LEN(output), RelayOff);
 
   pinModeGroup(input, LEN(input), INPUT);
-
   pinModeGroup(input_pullup, LEN(input_pullup), INPUT_PULLUP);
 
   //Read data stored in eeprom
   EEPROM.get(10, cooling);
   EEPROM.get(11, bufferTreshold);
 
-  //Wait for Initialization of Thermostat
-  while (!begun) {
-    serialRead();
-    Serial.print("wait 0;");
-    sense();
-    delay(1000);
-  }
+  setSyncInterval(10 * 60); //Sync time from blynk every 10 min (?)
 }
 
 //🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴
@@ -178,21 +198,16 @@ void loop() {
   if (initDone) {
     jobDo();
     serialSend();
+    blynkSync();
+  }
+  if (initDone) {
+    Blynk.run();
   }
 
   if (millis() > 6000 && !initDone) {
     initDone = true;
     Serial.println("Done!");
+    Blynk.begin(auth);
+    //todo read data from blynk as init
   }
-  
-//  everyTick();
-  
-  /*everyTick();
-  sense();
-  waterTasker(); //Don't act in the first five seconds while sensors are initializing.
-  water();
-  waterDo();
-
-  serialRead();
-  sendData();*/
 }

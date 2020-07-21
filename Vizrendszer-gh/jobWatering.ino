@@ -16,17 +16,6 @@ const wateringZone zones[] = {
 const unsigned long recalculateInactiveFor = 10 * 1000; //10s
 const unsigned long killInactiveFor = 43200000; //43'200'000ms -> 12h
 
-struct wateringSession {
-  unsigned long duration;
-  unsigned long startTime;
-  unsigned long lastAlive;
-  unsigned long elapsedTime;
-  int currentUnit;
-  bool purpose;
-};
-wateringSession currentSession;
-const wateringSession emptySession = {0,0,0,0,0,Normal};
-
 int sumWeights;
 bool canMoveStart = false;
 void beginWatering(unsigned long duration, bool purpose) {  //calculate one unit time from duration and set weights - then continue
