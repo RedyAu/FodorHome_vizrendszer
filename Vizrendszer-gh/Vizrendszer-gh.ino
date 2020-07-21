@@ -169,8 +169,6 @@ void setup() {
     Serial.println(softwareVersion);
     Serial.print("Initializing... ");
   }
-  //Init comms serial
-  //todo
 
   //Init sensors
   udvarDHT.begin();
@@ -183,9 +181,9 @@ void setup() {
   pinModeGroup(input, LEN(input), INPUT);
   pinModeGroup(input_pullup, LEN(input_pullup), INPUT_PULLUP);
 
-  //Read data stored in eeprom
+  /*//Read data stored in eeprom
   EEPROM.get(10, cooling);
-  EEPROM.get(11, bufferTreshold);
+  EEPROM.get(11, bufferTreshold);*/
 
   pinMode(SDCARD_CS, OUTPUT);
   //digitalWrite(SDCARD_CS, HIGH);

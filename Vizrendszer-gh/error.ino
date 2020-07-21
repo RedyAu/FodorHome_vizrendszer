@@ -4,15 +4,18 @@ void error(int type) {
   Serial.print("error ");
   Serial.print(type);
   Serial.print(";");
+  Blynk.virtualWrite(V101, currentError);
 
   if (currentError > 999) return; //above 1000 are warnings
 
+  Blynk.virtualWrite(V103, 255);
   while (currentError != 0) { //alternate loop while critical error
     sense();
     job();
     serialRead();
+    Blynk.run();
   }
-
+  Blynk.virtualWrite(V103, 0);
 }
 
 void continuityCheck() {
