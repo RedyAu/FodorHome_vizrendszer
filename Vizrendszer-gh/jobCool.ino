@@ -7,10 +7,10 @@ bool cool() {
     fullEmpty = false;
     currentJob = waterJob{StopNext};
   };
-
+/*
   if (cooling && levelOf(Buffer) > 0) if (digitalRead(flowPump) == RelayOff) digitalWrite(flowPump, RelayOn);
   else if (digitalRead(flowPump) == RelayOn) digitalWrite(flowPump, RelayOff);
-
+*/
   if (!cooling) return Continue;
   
   if (!isBufferEmptying()) {

@@ -189,6 +189,7 @@ void setup() {
   //digitalWrite(SDCARD_CS, HIGH);
 
   setSyncInterval(10 * 60); //Sync time from blynk every 10 min (?)
+  Blynk.begin(auth);
 }
 
 //🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴
@@ -213,7 +214,6 @@ void loop() {
   if (millis() > 6000 && !initDone) {
     initDone = true;
     Serial.println("Done!");
-    Blynk.begin(auth);
     //todo read data from blynk as init
   }
 }
