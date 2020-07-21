@@ -2,22 +2,19 @@
    if lastUpdate is more than 12h off, drop session
 */
 
-struct wateringZone {
-  int id;
-  int weight;
-};
-const wateringZone zones[] = {
+/*const wateringZone zones[] = {
   {toPink, 10},
   {toGreen, 16},
   {toBlue, 28}//,
   //{toRed, 12}
-};
+};*/
 
 const unsigned long recalculateInactiveFor = 10 * 1000; //10s
 const unsigned long killInactiveFor = 43200000; //43'200'000ms -> 12h
 
 int sumWeights;
 bool canMoveStart = false;
+
 void beginWatering(unsigned long duration, bool purpose) {  //calculate one unit time from duration and set weights - then continue
   Serial.print("Begin A ");
   currentSession = emptySession;

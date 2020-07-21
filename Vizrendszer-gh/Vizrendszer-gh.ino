@@ -66,25 +66,22 @@ const int fromBuffer = 22;
 const int fromWatering = 23;
 const int flowPump = 29;
 
-//Custom wording for clarity
+#define W5100_CS  10
+#define SDCARD_CS 4
+
+//Custom wordings for clarity
 #define Buffer 0 //levelOf()
 #define Watering 1
 
 #define Continue false //program flow control of job()
 #define End true
 
-#define StopNext true //waterJob
-#define NoStopNext false
-
 #define RelayOn LOW //optocoupler relays turn on when grounded
 #define RelayOff HIGH
 
-#define Cooling true //wateringSession.purpose
-#define Normal false
-
-#define W5100_CS  10
-#define SDCARD_CS 4
-
+//Data structures
+#define StopNext true //waterJob
+#define NoStopNext false
 struct waterJob {
   bool stop;
   int from;
@@ -92,6 +89,8 @@ struct waterJob {
 };
 waterJob currentJob;
 
+#define Cooling true //wateringSession.purpose
+#define Normal false
 struct wateringSession {
   unsigned long duration;
   unsigned long startTime;
@@ -103,6 +102,15 @@ struct wateringSession {
 wateringSession currentSession;
 const wateringSession emptySession = {0,0,0,0,0,Normal};
 
+#define Active true
+#define Inactive false
+struct wateringZone {
+  bool isActive;
+  int id;
+  int weight;
+};
+wateringZone zones[4];
+
 
 byte output[] = {22,23,24,25,30,31,32,33,34,35,36,37,26,27,28,29};
 byte input[] = {39,41,44,45,46};
@@ -110,29 +118,14 @@ byte input_pullup[] = {47};
 
 //Globals
 
-bool cooling, tapFlow, dumping, fullEmpty, watering, wateringFinished = true, begun = true, initDone;//////////////////////
+bool cooling, tapFlow, dumping, fullEmpty, watering, wateringFinished = true, skipNextWatering, doneToday, begun = true, initDone;//////////////////////
+unsigned long dailyWateringAtSeconds, setWateringDuration, secondsToday;
 
+float bufferTreshold;
 float bufferTemp, wateringTemp;
 float udvarTemp, udvarHum;
 
-float bufferTreshold;
-
 int currentError;
-
-unsigned long seconds = 0, forSecond = 0;
-
-/*
-#include "allStop.h"
-#include "communicate.h"
-#include "continuityCheck.h"
-#include "error.h"
-#include "sendData.h"
-#include "sense.h"
-#include "water.h"
-#include "waterLevel.h"
-#include "waterStart.h"
-#include "waterTasker.h"
-*/
 
 // BLYNK
 #define BLYNK_PRINT Serial
@@ -148,7 +141,6 @@ WidgetRTC rtc;
 //Initialize libraries
 
 #include <TimeLib.h>
-#include <Chronos.h>
 #include <Utilities.h>
 #include <DHT.h>
 #include <OneWire.h>
@@ -181,10 +173,6 @@ void setup() {
   pinModeGroup(input, LEN(input), INPUT);
   pinModeGroup(input_pullup, LEN(input_pullup), INPUT_PULLUP);
 
-  /*//Read data stored in eeprom
-  EEPROM.get(10, cooling);
-  EEPROM.get(11, bufferTreshold);*/
-
   pinMode(SDCARD_CS, OUTPUT);
   //digitalWrite(SDCARD_CS, HIGH);
 
@@ -195,6 +183,7 @@ void setup() {
 
 void loop() {
   serialRead();
+  scheduler();
   sense();
   job();
   if (initDone) {
