@@ -2,7 +2,7 @@ void jobStop() {
   if (debug) terminal.println("debug jobStop;");
 
   digitalWrite(mainPump, RelayOff);
-  
+
   //digitalWrite(toDump, RelayOn); //To releive excess pressure
 
   delay(100);
@@ -14,6 +14,9 @@ void jobStop() {
 
   byte toPins[] = {toDump, toTap, toBuffer, toWatering, toPink, toGreen, toBlue, toRed};
   digitalWriteGroup(toPins, LEN(toPins), RelayOff);
+
+  Blynk.virtualWrite(V60, 0); //Display 0 on watering progress bar after stopping
+  Blynk.virtualWrite(V62, 0);
 
   blynkJobUpdate();
 }

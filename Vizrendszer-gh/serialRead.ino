@@ -121,6 +121,10 @@ void parseCommand(String rawCommand) {
       beginWatering((unsigned long)argument * 1000, Normal);
     }
 
+    else if (command == "doneToday") {
+      doneToday = argument;
+    }
+
     else {
       if (debug) {
         Serial.print("\n\nGot wrong command!!\n\n");

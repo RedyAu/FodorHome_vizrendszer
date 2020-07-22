@@ -18,13 +18,13 @@ void blynkSync() {
   //Update watering stuff
   Blynk.virtualWrite(V59, skipNextWatering); 
   Blynk.virtualWrite(V56, watering);
-  Blynk.virtualWrite(V61, doneToday);
+  Blynk.virtualWrite(V61, doneToday ? 255 : 0);
   
   if (watering) {
     long double wateringProgressRatio = (long double)currentSession.elapsedTime / (long double)currentSession.duration;
     long double wateringProgress = (long double)1024 * wateringProgressRatio;
     Blynk.virtualWrite(V60, (int)wateringProgress);
-    Blynk.virtualWrite(V62, (int)(currentSession.duration / 60));
+    Blynk.virtualWrite(V62, (int)((currentSession.duration / 1000) / 60));
   }
 
   static bool heartbeat;
@@ -87,6 +87,7 @@ BLYNK_WRITE(V51) { //Dumping Button
 BLYNK_WRITE(V52) { //Stop Button
   if (param.asInt()) {
     currentJob = waterJob{StopNext};
+    currentSession = emptySession;
     cooling = false;
     dumping = false;
     tapFlow = false;
@@ -105,11 +106,17 @@ BLYNK_WRITE(V55) { //full empty
 }
 BLYNK_WRITE(V56) { //watering start button
   if (param.asInt()) {
-    beginWatering(setWateringDuration * 60, Normal);
+    beginWatering(setWateringDuration, Normal);
+  } else {
+    watering = false;
+    wateringFinished = true;
+    currentJob = waterJob {StopNext};
   }
 }
 BLYNK_WRITE(V57) { //watering duration (when next started)
-  setWateringDuration = param.asInt();
+  setWateringDuration = (unsigned long)((unsigned long)param.asInt() * 60) * 1000;
+  terminal.println(param.asInt());
+  terminal.println(setWateringDuration);
 }
 BLYNK_WRITE(V58) { //daily watering start at
   dailyWateringAtSeconds = param[0].asLong();
