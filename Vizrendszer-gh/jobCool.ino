@@ -56,7 +56,7 @@ bool cool() {
   } else {
     if (levelOf(Watering) == 2) { //if watering tank full, start the öntözést az öntözőből 
       bufferEmptyStop();
-      beginWatering(1500, Cooling);//todo measure empty time
+      beginWatering(510000, Cooling);//8.5 minutes
       return Continue;
     }
     if (fullEmpty) { //stop if empty or timer ran out or watering tank is full
