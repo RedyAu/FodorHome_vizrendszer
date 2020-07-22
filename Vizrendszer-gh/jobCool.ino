@@ -11,12 +11,14 @@ bool cool() {
   if (cooling && levelOf(Buffer) > 0) {
     if (digitalRead(flowPump) == RelayOff) {
       digitalWrite(flowPump, RelayOn);
-      Serial.print(1);
+      Blynk.virtualWrite(flowPump, 255);
+      terminal.println("flowPump on");
     }
   }
   else if (digitalRead(flowPump) == RelayOn) {
     digitalWrite(flowPump, RelayOff);
-    Serial.print(0);
+    Blynk.virtualWrite(flowPump, 0);
+    terminal.println("flowPump off");
   }
 
   if (!cooling) return Continue;
@@ -44,7 +46,7 @@ bool cool() {
     if (bufferTemp > bufferTreshold) { //start buffer emptying if temperature exceeded
       if ((millis() - bufferLastFilled < bufferFilledTooSoonTreshold) && isBufferLastFilledActive) {
         fullEmpty = true;
-        if (debug) Serial.println("fullEmpty true");
+        if (debug) terminal.println("fullEmpty true");
       }
       bufferEmptyingStartTime = millis();
       currentJob = waterJob{NoStopNext, fromBuffer, toWatering};

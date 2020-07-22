@@ -16,7 +16,7 @@ int sumWeights;
 bool canMoveStart = false;
 
 void beginWatering(unsigned long duration, bool purpose) {  //calculate one unit time from duration and set weights - then continue
-  Serial.print("Begin A ");
+  terminal.print("Begin A ");
   currentSession = emptySession;
   currentSession.duration = duration;
   currentSession.purpose = purpose;
@@ -24,15 +24,15 @@ void beginWatering(unsigned long duration, bool purpose) {  //calculate one unit
 
   if ((previousSession.duration == currentSession.duration) && (previousSession.purpose == currentSession.purpose)) water(); //if same session, do the section switch
 
-  Serial.println(currentSession.duration);
-  Serial.println("Begin B");
+  terminal.println(currentSession.duration);
+  terminal.println("Begin B");
   previousSession = currentSession;
   currentSession.startTime = millis();
 
   sumWeights = 0;
 
   for (int i; i < LEN(zones); i++) {
-    Serial.println("Begin C");
+    terminal.println("Begin C");
     sumWeights += zones[i].weight;
   }
 
@@ -57,13 +57,13 @@ bool water() {
       watering = false;
       canMoveStart = false;
       currentJob = {StopNext};
-      Serial.println("ABORTING/////////");
+      terminal.println("ABORTING/////////");
       return Continue;
     } else if (canMoveStart) {
       //recalculate start so that after the break in watering, we continue where we left off.
       //take difference between start and lastAlive.
       //put start that amount of time before now.
-      Serial.println("MOVING START/////////");
+      terminal.println("MOVING START/////////");
       currentSession.startTime = millis() - (currentSession.lastAlive - currentSession.startTime);
     }
   }

@@ -7,10 +7,10 @@ void scheduler() {
   if ((dailyWateringAtSeconds > secondsToday) && !doneToday) { //If we're past the set starting time
     if (!skipNextWatering) {
       beginWatering(setWateringDuration * 60, Normal);
-      Serial.println("Beginning daily watering...");
+      terminal.println("Beginning daily watering...");
     } else {
       skipNextWatering = false;
-      Serial.println("Skipping today's watering session...");
+      terminal.println("Skipping today's watering session...");
     }
     doneToday = true;
   }

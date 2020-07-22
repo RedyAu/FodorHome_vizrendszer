@@ -1,23 +1,5 @@
 void blynkSync() {
-  //Serial.println("Sync...");
-
-  //Update state of relays (yes this was the best way to do it)
-  Blynk.virtualWrite(fromGarage, (digitalRead(fromGarage) == RelayOn) ? 255 : 0);
-  Blynk.virtualWrite(fromBuffer, (digitalRead(fromBuffer) == RelayOn) ? 255 : 0);
-  Blynk.virtualWrite(fromWatering, (digitalRead(fromWatering) == RelayOn) ? 255 : 0);
-  Blynk.virtualWrite(fromWell, (digitalRead(fromWell) == RelayOn) ? 255 : 0);
-
-  Blynk.virtualWrite(toDump, (digitalRead(toDump) == RelayOn) ? 255 : 0);
-  Blynk.virtualWrite(toTap, (digitalRead(toTap) == RelayOn) ? 255 : 0);
-  Blynk.virtualWrite(toBuffer, (digitalRead(toBuffer) == RelayOn) ? 255 : 0);
-  Blynk.virtualWrite(toWatering, (digitalRead(toWatering) == RelayOn) ? 255 : 0);
-  Blynk.virtualWrite(10, (digitalRead(toPink) == RelayOn) ? 255 : 0);
-  Blynk.virtualWrite(13, (digitalRead(toGreen) == RelayOn) ? 255 : 0);
-  Blynk.virtualWrite(16, (digitalRead(toBlue) == RelayOn) ? 255 : 0);
-  Blynk.virtualWrite(19, (digitalRead(toRed) == RelayOn) ? 255 : 0);
-
-  Blynk.virtualWrite(mainPump, (digitalRead(mainPump) == RelayOn) ? 255 : 0);
-  Blynk.virtualWrite(flowPump, (digitalRead(flowPump) == RelayOn) ? 255 : 0);
+  //terminal.println("Sync...");
 
   //Update water levels
   Blynk.virtualWrite(V40, levelOf(Buffer));
@@ -26,10 +8,6 @@ void blynkSync() {
   //Update buffer temperature
   Blynk.virtualWrite(V43, bufferTemp);
 
-  //Update cooling state
-  Blynk.virtualWrite(V0, isBufferEmptying() ? 255 : 0);
-  Blynk.virtualWrite(V1, isBufferFilling() ? 255 : 0);
-
   //Update state of functions and buttons
   Blynk.virtualWrite(V50, tapFlow);
   Blynk.virtualWrite(V51, dumping);
@@ -37,20 +15,16 @@ void blynkSync() {
   Blynk.virtualWrite(V55, fullEmpty);
   Blynk.virtualWrite(V56, watering);
 
-  
   //Update watering stuff
   Blynk.virtualWrite(V59, skipNextWatering);
-  Blynk.virtualWrite(V62, (int)(currentSession.duration / 60));
   
-  //Update watering progress
-  long double wateringProgressRatio = (long double)currentSession.elapsedTime / (long double)currentSession.duration;
-  long double wateringProgress = (long double)1024 * wateringProgressRatio;
-  Blynk.virtualWrite(V60, (int)wateringProgress);
-
-  
-  //Send error
-  Blynk.virtualWrite(V101, currentError);
-  Blynk.virtualWrite(V103, (currentError != 0 && currentError < 999) ? 255 : 0);
+  if (watering) {
+    long double wateringProgressRatio = (long double)currentSession.elapsedTime / (long double)currentSession.duration;
+    long double wateringProgress = (long double)1024 * wateringProgressRatio;
+    Blynk.virtualWrite(V60, (int)wateringProgress);
+    
+    Blynk.virtualWrite(V62, (int)(currentSession.duration / 60));
+  }
 
   static bool heartbeat;
   if (!heartbeat) {
@@ -71,7 +45,7 @@ void updateZones() {
     { isBlueActive, toBlue, blueWeight },
     { isRedActive, toRed, redWeight }
   };
-  
+
   //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA I DONT WANT IT LIKE THIS BUT THERE IS NOT OTHER WAY WHYYY
   //Just spent >2h searching for a cleaner solution... not happy...
   for (int i = 0; i < 4; i++) {

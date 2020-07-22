@@ -29,7 +29,7 @@ bool tapAndDump() {
   
   if (dumping) { //if both containers emptied, dumping task is done.
     dumping = false;
-    Serial.println("\nBoth containers empy, dumping task is done.");
+    terminal.println("\nBoth containers empy, dumping task is done.");
     return Continue;
   }
   //TapFlow continues from well after watering container is emptied.

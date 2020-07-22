@@ -1,5 +1,5 @@
 void jobStop() {
-  if (debug) Serial.println("debug jobStop;");
+  if (debug) terminal.println("debug jobStop;");
 
   digitalWrite(mainPump, RelayOff);
   
@@ -14,6 +14,29 @@ void jobStop() {
 
   byte toPins[] = {toDump, toTap, toBuffer, toWatering, toPink, toGreen, toBlue, toRed};
   digitalWriteGroup(toPins, LEN(toPins), RelayOff);
+
+  blynkJobUpdate();
+}
+
+void blynkJobUpdate() {
+  Blynk.virtualWrite(fromGarage, (digitalRead(fromGarage) == RelayOn) ? 255 : 0);
+  Blynk.virtualWrite(fromBuffer, (digitalRead(fromBuffer) == RelayOn) ? 255 : 0);
+  Blynk.virtualWrite(fromWatering, (digitalRead(fromWatering) == RelayOn) ? 255 : 0);
+  Blynk.virtualWrite(fromWell, (digitalRead(fromWell) == RelayOn) ? 255 : 0);
+
+  Blynk.virtualWrite(toDump, (digitalRead(toDump) == RelayOn) ? 255 : 0);
+  Blynk.virtualWrite(toTap, (digitalRead(toTap) == RelayOn) ? 255 : 0);
+  Blynk.virtualWrite(toBuffer, (digitalRead(toBuffer) == RelayOn) ? 255 : 0);
+  Blynk.virtualWrite(toWatering, (digitalRead(toWatering) == RelayOn) ? 255 : 0);
+  Blynk.virtualWrite(10, (digitalRead(toPink) == RelayOn) ? 255 : 0);
+  Blynk.virtualWrite(13, (digitalRead(toGreen) == RelayOn) ? 255 : 0);
+  Blynk.virtualWrite(16, (digitalRead(toBlue) == RelayOn) ? 255 : 0);
+  Blynk.virtualWrite(19, (digitalRead(toRed) == RelayOn) ? 255 : 0);
+
+  Blynk.virtualWrite(mainPump, (digitalRead(mainPump) == RelayOn) ? 255 : 0);
+
+  Blynk.virtualWrite(V0, isBufferEmptying() ? 255 : 0);
+  Blynk.virtualWrite(V1, isBufferFilling() ? 255 : 0);
 }
 
 void jobDo() {
@@ -31,17 +54,17 @@ void jobDo() {
   switch (currentJob.from) {
     case fromWell://From Well
       digitalWrite(fromWell, RelayOn);
-      Serial.print("fromS fromWell;");
+      terminal.print("fromS fromWell;");
       break;
     case fromBuffer://From Buffer
       digitalWrite(fromGarage, RelayOn);
       digitalWrite(fromBuffer, RelayOn);
-      Serial.print("fromS fromBuffer;");
+      terminal.print("fromS fromBuffer;");
       break;
     case fromWatering://From Watering
       digitalWrite(fromGarage, RelayOn);
       digitalWrite(fromWatering, RelayOn);
-      Serial.print("fromS fromWatering;");
+      terminal.print("fromS fromWatering;");
       break;
     default:
       error(100);
@@ -52,35 +75,35 @@ void jobDo() {
   switch (currentJob.to) {
     case toDump:
       digitalWrite(toDump, RelayOn);
-      Serial.print("toS toDump;");
+      terminal.print("toS toDump;");
       break;
     case toTap:
       digitalWrite(toTap, RelayOn);
-      Serial.print("toS toTap;");
+      terminal.print("toS toTap;");
       break;
     case toBuffer:
       digitalWrite(toBuffer, RelayOn);
-      Serial.print("toS toBuffer;");
+      terminal.print("toS toBuffer;");
       break;
     case toWatering:
       digitalWrite(toWatering, RelayOn);
-      Serial.print("toS toWatering;");
+      terminal.print("toS toWatering;");
       break;
     case toPink:
       digitalWrite(toPink, RelayOn);
-      Serial.print("to pink;");
+      terminal.print("to pink;");
       break;
     case toGreen:
       digitalWrite(toGreen, RelayOn);
-      Serial.print("to green;");
+      terminal.print("to green;");
       break;
     case toBlue:
       digitalWrite(toBlue, RelayOn);
-      Serial.print("to blue;");
+      terminal.print("to blue;");
       break;
     case toRed:
       digitalWrite(toRed, RelayOn);
-      Serial.print("to red;");
+      terminal.print("to red;");
       break;
     /*case toGrey://To Grey
       break;*/
@@ -89,5 +112,6 @@ void jobDo() {
   }
 
   digitalWrite(mainPump, RelayOn);
-  Serial.print("mainPump 1;");
+  terminal.print("mainPump 1;");
+  blynkJobUpdate();
 }

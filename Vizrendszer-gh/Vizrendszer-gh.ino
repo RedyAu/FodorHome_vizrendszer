@@ -133,6 +133,7 @@ int currentError;
 #include <Ethernet.h>
 #include <BlynkSimpleEthernet.h>
 char auth[] = "fngkJqhTaCdhVm4QD9gle68xb4Fm9856";
+WidgetTerminal terminal(V100);
 
 #include <WidgetRTC.h>
 
@@ -203,6 +204,8 @@ void loop() {
     initDone = true;
     Serial.println("Done!");
     Blynk.begin(auth);
+    terminal.println(softwareVersion);
+    terminal.println("Connected.");
     //todo read data from blynk as init
   }
 }
