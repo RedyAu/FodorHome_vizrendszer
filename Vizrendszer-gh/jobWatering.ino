@@ -7,7 +7,7 @@
   {toGreen, 16},
   {toBlue, 28}//,
   //{toRed, 12}
-};*/
+  };*/
 
 const unsigned long recalculateInactiveFor = 10 * 1000; //10s
 const unsigned long killInactiveFor = 43200000; //43'200'000ms -> 12h
@@ -16,6 +16,7 @@ int sumWeights;
 bool canMoveStart = false;
 
 void beginWatering(unsigned long duration, bool purpose) {  //calculate one unit time from duration and set weights - then continue
+  updateZones(); //get new zones values from Blynk
   terminal.print("Begin A ");
   currentSession = emptySession;
   currentSession.duration = duration;
@@ -32,8 +33,10 @@ void beginWatering(unsigned long duration, bool purpose) {  //calculate one unit
   sumWeights = 0;
 
   for (int i; i < LEN(zones); i++) {
-    terminal.println("Begin C");
-    sumWeights += zones[i].weight;
+    if (zones[i].isActive) {
+      terminal.println("Begin C");
+      sumWeights += zones[i].weight;
+    }
   }
 
   watering = true;
@@ -48,7 +51,7 @@ bool water() {
   //start current section based on startTime (rollover!! difference)
   //if finished reached, running false
   if (wateringFinished || !watering) return Continue;
-  
+
   unsigned long deadSince = millis() - currentSession.lastAlive;
   if (deadSince > recalculateInactiveFor) {
     if (deadSince > killInactiveFor) {
@@ -67,7 +70,7 @@ bool water() {
       currentSession.startTime = millis() - (currentSession.lastAlive - currentSession.startTime);
     }
   }
-  
+
   //Update elapsed time and lastAlive
   currentSession.lastAlive = millis();
   canMoveStart = true;
@@ -94,16 +97,18 @@ bool water() {
       Loop subtracts weight of first zone and sees that it didn't go in negatives. Thus, continues loop;
       Loop subtracts weight of second zone as well, and sees that it's negative. Sets currentJob to watering that zone.
   */
-  
+
   int tempCurrentUnit = currentSession.currentUnit;
 
   int j = 0;//for loop didn't want to work :/
   while (j < LEN(zones)) {
-    tempCurrentUnit -= zones[j].weight;
-    if (tempCurrentUnit < 0) {
-      currentJob = {NoStopNext, ((levelOf(Watering) > 0) ? fromWatering : fromWell), zones[j].id};
-      return End;
-      break;
+    if (zones[j].isActive) {
+      tempCurrentUnit -= zones[j].weight;
+      if (tempCurrentUnit < 0) {
+        currentJob = {NoStopNext, ((levelOf(Watering) > 0) ? fromWatering : fromWell), zones[j].id};
+        return End;
+        break;
+      }
     }
     j++;
   }

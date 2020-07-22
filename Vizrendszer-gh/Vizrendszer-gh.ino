@@ -111,6 +111,23 @@ struct wateringZone {
 };
 wateringZone zones[4];
 
+bool isPinkActive, isGreenActive, isBlueActive, isRedActive;
+int pinkWeight, greenWeight, blueWeight, redWeight;
+void updateZones() {
+  wateringZone newZones[] = {
+    { isPinkActive, toPink, pinkWeight },
+    { isGreenActive, toGreen, greenWeight },
+    { isBlueActive, toBlue, blueWeight },
+    { isRedActive, toRed, redWeight }
+  };
+
+  //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA I DONT WANT IT LIKE THIS BUT THERE IS NOT OTHER WAY WHYYY
+  //Just spent >2h searching for a cleaner solution... not happy...
+  for (int i = 0; i < 4; i++) {
+    zones[i] = newZones[i];
+  }
+}
+
 
 byte output[] = {22,23,24,25,30,31,32,33,34,35,36,37,26,27,28,29};
 byte input[] = {39,41,44,45,46};
@@ -129,15 +146,14 @@ int currentError;
 
 // BLYNK
 #define BLYNK_PRINT Serial
-#include <SPI.h>
-#include <Ethernet.h>
 #include <BlynkSimpleEthernet.h>
+#include <Ethernet.h>
+#include <SPI.h>
 char auth[] = "fngkJqhTaCdhVm4QD9gle68xb4Fm9856";
-WidgetTerminal terminal(V100);
 
 #include <WidgetRTC.h>
-
 WidgetRTC rtc;
+WidgetTerminal terminal(V100);
 
 //Initialize libraries
 

@@ -16,13 +16,14 @@ void blynkSync() {
   Blynk.virtualWrite(V56, watering);
 
   //Update watering stuff
-  Blynk.virtualWrite(V59, skipNextWatering);
+  Blynk.virtualWrite(V59, skipNextWatering); 
+  Blynk.virtualWrite(V56, watering);
+  Blynk.virtualWrite(V61, doneToday);
   
   if (watering) {
     long double wateringProgressRatio = (long double)currentSession.elapsedTime / (long double)currentSession.duration;
     long double wateringProgress = (long double)1024 * wateringProgressRatio;
     Blynk.virtualWrite(V60, (int)wateringProgress);
-    
     Blynk.virtualWrite(V62, (int)(currentSession.duration / 60));
   }
 
@@ -34,23 +35,8 @@ void blynkSync() {
     Blynk.virtualWrite(V104, 0);
     heartbeat = false;
   }
-}
 
-bool isPinkActive, isGreenActive, isBlueActive, isRedActive;
-int pinkWeight, greenWeight, blueWeight, redWeight;
-void updateZones() {
-  wateringZone newZones[] = {
-    { isPinkActive, toPink, pinkWeight },
-    { isGreenActive, toGreen, greenWeight },
-    { isBlueActive, toBlue, blueWeight },
-    { isRedActive, toRed, redWeight }
-  };
-
-  //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA I DONT WANT IT LIKE THIS BUT THERE IS NOT OTHER WAY WHYYY
-  //Just spent >2h searching for a cleaner solution... not happy...
-  for (int i = 0; i < 4; i++) {
-    zones[i] = newZones[i];
-  }
+  terminal.flush();
 }
 
 BLYNK_CONNECTED() {
@@ -58,6 +44,39 @@ BLYNK_CONNECTED() {
   rtc.begin();
   Blynk.syncAll();
 }
+
+//-------------------------------------
+//Watering Zone Properties
+//Pink
+BLYNK_WRITE(V11) { //Active
+  isPinkActive = param.asInt();
+}
+BLYNK_WRITE(V12) { //Weight
+  pinkWeight = param.asInt();
+}
+//Green
+BLYNK_WRITE(V14) { //Active
+  isGreenActive = param.asInt();
+}
+BLYNK_WRITE(V15) { //Weight
+  greenWeight = param.asInt();
+}
+//Blue
+BLYNK_WRITE(V17) { //Active
+  isBlueActive = param.asInt();
+}
+BLYNK_WRITE(V18) { //Weight
+  blueWeight = param.asInt();
+}
+//Red
+BLYNK_WRITE(V20) { //Active
+  isRedActive = param.asInt();
+}
+BLYNK_WRITE(V21) { //Weight
+  redWeight = param.asInt();
+}
+/*Watering Zone Properties*/
+//-------------------------------------
 
 BLYNK_WRITE(V50) { //TapFlowButton
   tapFlow = param.asInt();
@@ -94,6 +113,9 @@ BLYNK_WRITE(V57) { //watering duration (when next started)
 }
 BLYNK_WRITE(V58) { //daily watering start at
   dailyWateringAtSeconds = param[0].asLong();
+}
+BLYNK_WRITE(V59) { //skip next daily watering session
+  skipNextWatering = param.asInt();
 }
 BLYNK_WRITE(V61) { //done today led - hopefully works ( todo )
   doneToday = param.asInt();
