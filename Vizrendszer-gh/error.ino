@@ -8,7 +8,7 @@ void error(int type) {
   Blynk.virtualWrite(V101, currentError);
   Blynk.virtualWrite(V103, (currentError != 0 && currentError < 999) ? 255 : 0);
 
-  if (currentError > 999) return; //above 1000 are warnings, loop not locked
+  if ((currentError > 999) || currentError == 0) return; //above 1000 are warnings, loop not locked
 
   currentJob = waterJob{StopNext};
   cooling = false;
@@ -16,6 +16,7 @@ void error(int type) {
   tapFlow = false;
   watering = false;
   wateringFinished = true;
+  currentSession = emptySession;
   
   job();
   jobDo();

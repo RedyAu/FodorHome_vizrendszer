@@ -25,8 +25,9 @@
          File structure reworked.
          Implemented watering controller
          Implemented Blynk Ethernet control
+   1.1 - Midnight watering bug resolved. New button to disable daily watering. Fixed bug where error deleting stops processes.
 */
-#define softwareVersion "1.0"
+#define softwareVersion "1.1"
 
 //Constants
 const bool debug = true;
@@ -100,7 +101,7 @@ struct wateringSession {
   bool purpose;
 };
 wateringSession currentSession;
-const wateringSession emptySession = {0,0,0,0,0,Normal};
+const wateringSession emptySession = {0, 0, 0, 0, 0, Normal};
 
 #define Active true
 #define Inactive false
@@ -129,13 +130,13 @@ void updateZones() {
 }
 
 
-byte output[] = {22,23,24,25,30,31,32,33,34,35,36,37,26,27,28,29};
-byte input[] = {39,41,44,45,46};
+byte output[] = {22, 23, 24, 25, 30, 31, 32, 33, 34, 35, 36, 37, 26, 27, 28, 29};
+byte input[] = {39, 41, 44, 45, 46};
 byte input_pullup[] = {47};
 
 //Globals
 
-bool cooling, tapFlow, dumping, fullEmpty, watering, wateringFinished = true, skipNextWatering, doneToday, begun = true, initDone;//////////////////////
+bool cooling, tapFlow, dumping, fullEmpty, watering, wateringFinished = true, skipNextWatering, isPeriodicWateringEnabled, doneToday, begun = true, initDone;//////////////////////
 unsigned long dailyWateringAtSeconds, setWateringDuration, secondsToday;
 
 float bufferTreshold;
@@ -200,7 +201,6 @@ void setup() {
 
 void loop() {
   serialRead();
-  scheduler();
   sense();
   job();
   if (initDone) {
@@ -211,17 +211,21 @@ void loop() {
       blynkSync();
       lastBlynkSync = millis();
     }
-  }
-  if (initDone) {
     Blynk.run();
+    scheduler();
   }
 
   if (millis() > 6000 && !initDone) {
     initDone = true;
     Serial.println("Done!");
     Blynk.begin(auth);
+    terminal.clear();
+    terminal.print("Connected. v");
     terminal.println(softwareVersion);
-    terminal.println("Connected.");
-    //todo read data from blynk as init
+    Blynk.run();
+    terminal.print("Time: ");
+    terminal.print(hour());
+    terminal.print(":");
+    terminal.println(minute());
   }
 }
