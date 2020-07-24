@@ -105,9 +105,13 @@ BLYNK_WRITE(V54) { //buffer treshold
 BLYNK_WRITE(V55) { //full empty
   fullEmpty = param.asInt();
 }
+bool initNoWatering = true;
 BLYNK_WRITE(V56) { //watering start button
   if (param.asInt()) {
-    beginWatering(setWateringDuration, Normal);
+    if (initNoWatering) {
+      initNoWatering = false;
+      Blynk.virtualWrite(V56, 0);
+    } else beginWatering(setWateringDuration, Normal);
   } else {
     watering = false;
     wateringFinished = true;
