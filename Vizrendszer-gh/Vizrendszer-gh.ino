@@ -26,8 +26,9 @@
          Implemented watering controller
          Implemented Blynk Ethernet control
    1.1 - Midnight watering bug resolved. New button to disable daily watering. Fixed bug where error deleting stops processes.
+   1.2 - Rolling average implemented for fluctuating buffer temperature sensor. Fixed bug where watering starts after empty/watering for cooling.
 */
-#define softwareVersion "1.1"
+#define softwareVersion "1.2"
 
 //Constants
 const bool debug = true;

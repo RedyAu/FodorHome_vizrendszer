@@ -43,6 +43,7 @@ BLYNK_CONNECTED() {
   // Synchronize time on connection
   rtc.begin();
   Blynk.syncAll();
+  watering = false;
 }
 
 //-------------------------------------

@@ -6,14 +6,25 @@ void sense() { //Read data from temperature and humidity sensors and write it to
   if (forSenseMillis < millis()) {
     forSenseMillis = millis() + 2000;
 
+    static int bufferTempReadings[20] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    static int bufferTempReadingIndex;
+    static int bufferTempReadingsSum;
+
+    bufferTempReadingsSum -= bufferTempReadings[bufferTempReadingIndex] / 10;
+    waterTemp.requestTemperatures();
+    bufferTempReadings[bufferTempReadingIndex] = (int)(waterTemp.getTempCByIndex(0) * 10);
+    bufferTempReadingsSum += bufferTempReadings[bufferTempReadingIndex] / 10;
+    bufferTempReadingIndex++;
+
+    if (bufferTempReadingIndex >= LEN(bufferTempReadings)) bufferTempReadingIndex = 0;
+    
+    bufferTemp = (float)bufferTempReadingsSum / LEN(bufferTempReadings);
+
     //udvarTemp = udvarDHT.readTemperature();
     //udvarHum = udvarDHT.readHumidity();
     //if (udvarTemp == nan || udvarHum == nan) error(1410); //read warning
 
-    waterTemp.requestTemperatures();
-
-    bufferTemp = waterTemp.getTempCByIndex(0);
-    switch(int(bufferTemp * 10)) {
+/*    switch (int(bufferTemp * 10)) {
       case -1270:
         //sensor disconnected todo
         error(1420);
@@ -23,7 +34,7 @@ void sense() { //Read data from temperature and humidity sensors and write it to
         error(1425);
         bufferTemp = -127.0;
         break;
-    }
+    }*/
   }
 
   bool bufferLowerNow = digitalRead(bufferLvlLower);
