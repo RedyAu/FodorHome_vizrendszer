@@ -4,37 +4,49 @@ unsigned long forSenseMillis, forBufferLowerMillis, forBufferUpperMillis, forWat
 void sense() { //Read data from temperature and humidity sensors and write it to variables so other functions can use them
 
   if (forSenseMillis < millis()) {
-    forSenseMillis = millis() + 2000;
+    forSenseMillis = millis() + 1500;
 
-    static int bufferTempReadings[20] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    static int bufferTempReadingIndex;
-    static int bufferTempReadingsSum;
+    static bool doTempReading;
+    if (doTempReading) {
+      static int bufferTempReadings[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+      static int bufferTempReadingIndex;
+      static int bufferTempReadingsSum;
+      float thisReading = waterTemp.getTempCByIndex(0);
 
-    bufferTempReadingsSum -= bufferTempReadings[bufferTempReadingIndex] / 10;
-    waterTemp.requestTemperatures();
-    bufferTempReadings[bufferTempReadingIndex] = (int)(waterTemp.getTempCByIndex(0) * 10);
-    bufferTempReadingsSum += bufferTempReadings[bufferTempReadingIndex] / 10;
-    bufferTempReadingIndex++;
+      bufferTempReadingsSum -= bufferTempReadings[bufferTempReadingIndex] / 10;
+      //delay(3000);
+      bufferTempReadings[bufferTempReadingIndex] = (int)(thisReading * 10);
+      bufferTempReadingsSum += bufferTempReadings[bufferTempReadingIndex] / 10;
+      bufferTempReadingIndex++;
 
-    if (bufferTempReadingIndex >= LEN(bufferTempReadings)) bufferTempReadingIndex = 0;
-    
-    bufferTemp = (float)bufferTempReadingsSum / LEN(bufferTempReadings);
+      if (bufferTempReadingIndex >= LEN(bufferTempReadings)) bufferTempReadingIndex = 0;
+
+      bufferTemp = (float)bufferTempReadingsSum / LEN(bufferTempReadings);
+      terminal.print(thisReading);
+      terminal.print(", atlag: ");
+      terminal.println(bufferTemp);
+
+      doTempReading = false;
+    } else {
+      waterTemp.requestTemperatures();
+      doTempReading = true;
+    }
 
     //udvarTemp = udvarDHT.readTemperature();
     //udvarHum = udvarDHT.readHumidity();
     //if (udvarTemp == nan || udvarHum == nan) error(1410); //read warning
 
-/*    switch (int(bufferTemp * 10)) {
-      case -1270:
-        //sensor disconnected todo
-        error(1420);
-        break;
-      case 850:
-        //sensor connected but reading failed
-        error(1425);
-        bufferTemp = -127.0;
-        break;
-    }*/
+    /*    switch (int(bufferTemp * 10)) {
+          case -1270:
+            //sensor disconnected todo
+            error(1420);
+            break;
+          case 850:
+            //sensor connected but reading failed
+            error(1425);
+            bufferTemp = -127.0;
+            break;
+        }*/
   }
 
   bool bufferLowerNow = digitalRead(bufferLvlLower);

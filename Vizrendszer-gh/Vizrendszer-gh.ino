@@ -48,7 +48,7 @@ const int waterLvlLower = 44; //Pin number of lower water sensor of watering tan
 const int waterLvlUpper = 39; //Pin number of upper water sensor of watering tank
 const int tapFlowSwitch = 47; //Pulled up switch next to the tap.
 const int udvarDHTpin = 48; //todo
-const int oneWireBus = 41; //One sensor connected: Water temperature sensor of Buffer tank
+const int oneWireBus = A8; //One sensor connected: Water temperature sensor of Buffer tank
 
 const int fromWell = 26;
 const int fromGarage = 27;
@@ -122,17 +122,13 @@ void updateZones() {
     { isBlueActive, toBlue, blueWeight },
     { isRedActive, toRed, redWeight }
   };
-
-  //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA I DONT WANT IT LIKE THIS BUT THERE IS NOT OTHER WAY WHYYY
-  //Just spent >2h searching for a cleaner solution... not happy...
   for (int i = 0; i < 4; i++) {
     zones[i] = newZones[i];
   }
 }
 
-
 byte output[] = {22, 23, 24, 25, 30, 31, 32, 33, 34, 35, 36, 37, 26, 27, 28, 29};
-byte input[] = {39, 41, 44, 45, 46};
+byte input[] = {39, 41, 44, 45, 46, A8};
 byte input_pullup[] = {47};
 
 //Globals
@@ -161,12 +157,9 @@ WidgetTerminal terminal(V100);
 
 #include <TimeLib.h>
 #include <Utilities.h>
-#include <DHT.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <EEPROM.h>
-
-DHT udvarDHT(udvarDHTpin, DHT11);
 
 OneWire oneWire(oneWireBus);
 DallasTemperature waterTemp(&oneWire);
@@ -182,8 +175,8 @@ void setup() {
   }
 
   //Init sensors
-  udvarDHT.begin();
   waterTemp.begin();
+  waterTemp.setResolution(12);
 
   //Init pins
   pinModeGroup(output, LEN(output), OUTPUT);
