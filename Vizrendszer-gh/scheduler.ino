@@ -1,10 +1,13 @@
 void scheduler() {
   time_t t = now();
-  secondsToday += hour(t) * 3600;
-  secondsToday += minute(t) * 60;
-  secondsToday += second(t);
-
-  if ((dailyWateringAtSeconds > secondsToday) && !doneToday) { //If we're past the set starting time
+  secondsToday = 0;
+  secondsToday += (unsigned long)((unsigned long)hour(t) * (unsigned long)3600);
+  secondsToday += (unsigned long)((unsigned long)minute(t) * (unsigned long)60);
+  secondsToday += (unsigned long)second(t);
+  //Yeah I really really do love myself some type casting
+  
+  if (!isPeriodicWateringEnabled) return;
+  if ((dailyWateringAtSeconds < secondsToday) && !doneToday) { //If we're past the set starting time
     if (!skipNextWatering) {
       beginWatering(setWateringDuration, Normal);
       terminal.println("Beginning daily watering...");
@@ -14,6 +17,5 @@ void scheduler() {
     }
     doneToday = true;
   }
-
   if ((hour() + minute()) == 0) doneToday = false; //At midnight, reset (Because of this, the set start time can't be 0:00 or else it'll _wreak havoc_ or what.)
 }

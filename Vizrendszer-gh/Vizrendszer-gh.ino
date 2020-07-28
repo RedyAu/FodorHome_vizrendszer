@@ -25,6 +25,8 @@
          File structure reworked.
          Implemented watering controller
          Implemented Blynk Ethernet control
+   1.1 - Midnight watering bug resolved. New button to disable daily watering. Fixed bug where error deleting stops processes.
+   1.2 - Rolling average implemented for fluctuating buffer temperature sensor. Fixed bug where watering starts after empty/watering for cooling.
    1.3 - Implement new button for isCoolingWatering
 */
 #define softwareVersion "1.3"
@@ -142,7 +144,7 @@ byte input_pullup[] = {47};
 
 //Globals
 
-bool cooling, tapFlow, dumping, fullEmpty, watering, wateringFinished = true, skipNextWatering, doneToday, begun = true, initDone;//////////////////////
+bool cooling, tapFlow, dumping, fullEmpty, watering, wateringFinished = true, skipNextWatering, isPeriodicWateringEnabled, doneToday, begun = true, initDone;//////////////////////
 unsigned long dailyWateringAtSeconds, setWateringDuration, secondsToday;
 
 float bufferTreshold;
@@ -207,7 +209,6 @@ void setup() {
 
 void loop() {
   serialRead();
-  scheduler();
   sense();
   job();
   if (initDone) {
@@ -218,17 +219,21 @@ void loop() {
       blynkSync();
       lastBlynkSync = millis();
     }
-  }
-  if (initDone) {
     Blynk.run();
+    scheduler();
   }
 
   if (millis() > 6000 && !initDone) {
     initDone = true;
     Serial.println("Done!");
     Blynk.begin(auth);
+    terminal.clear();
+    terminal.print("Connected. v");
     terminal.println(softwareVersion);
-    terminal.println("Connected.");
-    //todo read data from blynk as init
+    Blynk.run();
+    terminal.print("Time: ");
+    terminal.print(hour());
+    terminal.print(":");
+    terminal.println(minute());
   }
 }

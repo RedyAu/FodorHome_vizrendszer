@@ -1,6 +1,6 @@
 void blynkSync() {
   //terminal.println("Sync...");
-
+  
   //Update water levels
   Blynk.virtualWrite(V40, levelOf(Buffer));
   Blynk.virtualWrite(V41, levelOf(Watering));
@@ -44,6 +44,7 @@ BLYNK_CONNECTED() {
   // Synchronize time on connection
   rtc.begin();
   Blynk.syncAll();
+  watering = false;
 }
 
 //-------------------------------------
@@ -105,9 +106,13 @@ BLYNK_WRITE(V54) { //buffer treshold
 BLYNK_WRITE(V55) { //full empty
   fullEmpty = param.asInt();
 }
+bool initNoWatering = true;
 BLYNK_WRITE(V56) { //watering start button
   if (param.asInt()) {
-    beginWatering(setWateringDuration, Normal);
+    if (initNoWatering) {
+      initNoWatering = false;
+      Blynk.virtualWrite(V56, 0);
+    } else beginWatering(setWateringDuration, Normal);
   } else {
     watering = false;
     wateringFinished = true;
@@ -116,11 +121,10 @@ BLYNK_WRITE(V56) { //watering start button
 }
 BLYNK_WRITE(V57) { //watering duration (when next started)
   setWateringDuration = (unsigned long)((unsigned long)param.asInt() * 60) * 1000;
-  terminal.println(param.asInt());
-  terminal.println(setWateringDuration);
 }
 BLYNK_WRITE(V58) { //daily watering start at
   dailyWateringAtSeconds = param[0].asLong();
+  if (dailyWateringAtSeconds == 0) dailyWateringAtSeconds = 60; //scheduler can't handle midnight, so if that's set, set it to 00:01.
 }
 BLYNK_WRITE(V59) { //skip next daily watering session
   skipNextWatering = param.asInt();
@@ -130,6 +134,8 @@ BLYNK_WRITE(V61) { //done today led - hopefully works ( todo )
 }
 BLYNK_WRITE(V64) {
   isCoolingWatering = param.asInt();
+BLYNK_WRITE(V63) { //isPeriodicWateringEnabled
+  isPeriodicWateringEnabled = param.asInt();
 }
 BLYNK_WRITE(V102) { //error clear
   if (param.asInt()) error(0);
