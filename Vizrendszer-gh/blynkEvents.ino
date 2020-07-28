@@ -14,6 +14,7 @@ void blynkSync() {
   Blynk.virtualWrite(V53, cooling);
   Blynk.virtualWrite(V55, fullEmpty);
   Blynk.virtualWrite(V56, watering);
+  Blynk.virtualWrite(V64, isCoolingWatering);
 
   //Update watering stuff
   Blynk.virtualWrite(V59, skipNextWatering); 
@@ -126,6 +127,9 @@ BLYNK_WRITE(V59) { //skip next daily watering session
 }
 BLYNK_WRITE(V61) { //done today led - hopefully works ( todo )
   doneToday = param.asInt();
+}
+BLYNK_WRITE(V64) {
+  isCoolingWatering = param.asInt();
 }
 BLYNK_WRITE(V102) { //error clear
   if (param.asInt()) error(0);

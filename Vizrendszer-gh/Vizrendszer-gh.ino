@@ -25,8 +25,9 @@
          File structure reworked.
          Implemented watering controller
          Implemented Blynk Ethernet control
+   1.3 - Implement new button for isCoolingWatering
 */
-#define softwareVersion "1.0"
+#define softwareVersion "1.3"
 
 //Constants
 const bool debug = true;
@@ -100,7 +101,7 @@ struct wateringSession {
   bool purpose;
 };
 wateringSession currentSession;
-const wateringSession emptySession = {0,0,0,0,0,Normal};
+const wateringSession emptySession = {0, 0, 0, 0, 0, Normal};
 
 #define Active true
 #define Inactive false
@@ -111,15 +112,21 @@ struct wateringZone {
 };
 wateringZone zones[4];
 
-bool isPinkActive, isGreenActive, isBlueActive, isRedActive;
+bool isPinkActive, isGreenActive, isBlueActive, isRedActive, isCoolingWatering;
 int pinkWeight, greenWeight, blueWeight, redWeight;
 void updateZones() {
-  wateringZone newZones[] = {
-    { isPinkActive, toPink, pinkWeight },
-    { isGreenActive, toGreen, greenWeight },
-    { isBlueActive, toBlue, blueWeight },
-    { isRedActive, toRed, redWeight }
-  };
+  if (isCoolingWatering) {
+    wateringZone newZones[] = {
+      { isPinkActive, toPink, pinkWeight },
+      { isGreenActive, toGreen, greenWeight },
+      { isBlueActive, toBlue, blueWeight },
+      { isRedActive, toRed, redWeight }
+    };
+  } else {
+    wateringZone newZones[] = {
+      { Active, toDump, 1 }
+    }
+  }
 
   //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA I DONT WANT IT LIKE THIS BUT THERE IS NOT OTHER WAY WHYYY
   //Just spent >2h searching for a cleaner solution... not happy...
@@ -129,8 +136,8 @@ void updateZones() {
 }
 
 
-byte output[] = {22,23,24,25,30,31,32,33,34,35,36,37,26,27,28,29};
-byte input[] = {39,41,44,45,46};
+byte output[] = {22, 23, 24, 25, 30, 31, 32, 33, 34, 35, 36, 37, 26, 27, 28, 29};
+byte input[] = {39, 41, 44, 45, 46};
 byte input_pullup[] = {47};
 
 //Globals
