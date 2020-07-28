@@ -27,8 +27,9 @@
          Implemented Blynk Ethernet control
    1.1 - Midnight watering bug resolved. New button to disable daily watering. Fixed bug where error deleting stops processes.
    1.2 - Rolling average implemented for fluctuating buffer temperature sensor. Fixed bug where watering starts after empty/watering for cooling.
+   1.3 - Implement new button for isCoolingWatering
 */
-#define softwareVersion "1.2"
+#define softwareVersion "1.3"
 
 //Constants
 const bool debug = true;
@@ -113,15 +114,22 @@ struct wateringZone {
 };
 wateringZone zones[4];
 
-bool isPinkActive, isGreenActive, isBlueActive, isRedActive;
+bool isPinkActive, isGreenActive, isBlueActive, isRedActive, isCoolingWatering;
 int pinkWeight, greenWeight, blueWeight, redWeight;
 void updateZones() {
-  wateringZone newZones[] = {
-    { isPinkActive, toPink, pinkWeight },
-    { isGreenActive, toGreen, greenWeight },
-    { isBlueActive, toBlue, blueWeight },
-    { isRedActive, toRed, redWeight }
-  };
+  if (isCoolingWatering) {
+    wateringZone newZones[] = {
+      { isPinkActive, toPink, pinkWeight },
+      { isGreenActive, toGreen, greenWeight },
+      { isBlueActive, toBlue, blueWeight },
+      { isRedActive, toRed, redWeight }
+    };
+  } else {
+    wateringZone newZones[] = {
+      { Active, toDump, 1 }
+    }
+  }
+  
   for (int i = 0; i < 4; i++) {
     zones[i] = newZones[i];
   }
