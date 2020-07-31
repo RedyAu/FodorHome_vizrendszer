@@ -134,6 +134,7 @@ BLYNK_WRITE(V61) { //done today led - hopefully works ( todo )
 }
 BLYNK_WRITE(V64) {
   isCoolingWatering = param.asInt();
+}
 BLYNK_WRITE(V63) { //isPeriodicWateringEnabled
   isPeriodicWateringEnabled = param.asInt();
 }
