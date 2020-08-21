@@ -1,6 +1,0 @@
-{
-    "port": "COM5",
-    "board": "arduino:avr:uno",
-    "programmer": "AVRISP mkII",
-    "sketch": "Vizrendszer\\vizrendszer_0.11.2.ino"
-}
