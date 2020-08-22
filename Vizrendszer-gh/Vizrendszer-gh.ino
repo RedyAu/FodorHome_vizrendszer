@@ -31,6 +31,29 @@
 */
 #define softwareVersion "1.3"
 
+// BLYNK
+#define BLYNK_PRINT Serial
+#include <BlynkSimpleEthernet.h>
+#include <Ethernet.h>
+#include <SPI.h>
+char auth[] = "fngkJqhTaCdhVm4QD9gle68xb4Fm9856";
+
+#include <WidgetRTC.h>
+WidgetRTC rtc;
+WidgetTerminal terminal(V100);
+
+//Initialize libraries
+
+#include <TimeLib.h>
+#include <Utilities.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
+#include <EEPROM.h>
+
+const int oneWireBus = A8; //One sensor connected: Water temperature sensor of Buffer tank
+OneWire oneWire(oneWireBus);
+DallasTemperature waterTemp(&oneWire);
+
 //Constants
 const bool debug = true;
 
@@ -49,7 +72,6 @@ const int waterLvlLower = 44; //Pin number of lower water sensor of watering tan
 const int waterLvlUpper = 39; //Pin number of upper water sensor of watering tank
 const int tapFlowSwitch = 47; //Pulled up switch next to the tap.
 const int udvarDHTpin = 48; //todo
-const int oneWireBus = A8; //One sensor connected: Water temperature sensor of Buffer tank
 
 const int fromWell = 26;
 const int fromGarage = 27;
@@ -124,14 +146,16 @@ void updateZones() {
       { isBlueActive, toBlue, blueWeight },
       { isRedActive, toRed, redWeight }
     };
+    for (int i = 0; i < 4; i++) {
+      zones[i] = newZones[i];
+    }
   } else {
     wateringZone newZones[] = {
       { Active, toDump, 1 }
+    };
+    for (int i = 0; i < 4; i++) {
+      zones[i] = newZones[i];
     }
-  }
-  
-  for (int i = 0; i < 4; i++) {
-    zones[i] = newZones[i];
   }
 }
 
@@ -149,28 +173,6 @@ float bufferTemp, wateringTemp;
 float udvarTemp, udvarHum;
 
 int currentError;
-
-// BLYNK
-#define BLYNK_PRINT Serial
-#include <BlynkSimpleEthernet.h>
-#include <Ethernet.h>
-#include <SPI.h>
-char auth[] = "fngkJqhTaCdhVm4QD9gle68xb4Fm9856";
-
-#include <WidgetRTC.h>
-WidgetRTC rtc;
-WidgetTerminal terminal(V100);
-
-//Initialize libraries
-
-#include <TimeLib.h>
-#include <Utilities.h>
-#include <OneWire.h>
-#include <DallasTemperature.h>
-#include <EEPROM.h>
-
-OneWire oneWire(oneWireBus);
-DallasTemperature waterTemp(&oneWire);
 
 //🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴
 
