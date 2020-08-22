@@ -8,9 +8,9 @@ void sense() { //Read data from temperature and humidity sensors and write it to
 
     static bool doTempReading;
     if (doTempReading) {
-      static int bufferTempReadings[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+      static float bufferTempReadings[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
       static int bufferTempReadingIndex;
-      static int bufferTempReadingsSum;
+      static float bufferTempReadingsSum;
       float thisReading = waterTemp.getTempCByIndex(0);
 
       bufferTempReadingsSum -= bufferTempReadings[bufferTempReadingIndex] / 10;
