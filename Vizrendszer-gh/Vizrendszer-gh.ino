@@ -28,6 +28,7 @@
    1.1 - Midnight watering bug resolved. New button to disable daily watering. Fixed bug where error deleting stops processes.
    1.2 - Rolling average implemented for fluctuating buffer temperature sensor. Fixed bug where watering starts after empty/watering for cooling.
    1.3 - Implement new button for isCoolingWatering
+   1.4 - Compiler fix, watering getting stuck fix
 */
 #define softwareVersion "1.3"
 

@@ -21,6 +21,7 @@ void beginWatering(unsigned long duration, bool purpose) {  //calculate one unit
   currentSession = emptySession;
   currentSession.duration = duration;
   currentSession.purpose = purpose;
+  currentSession.lastAlive = millis();
   static wateringSession previousSession;
 
   if ((previousSession.duration == currentSession.duration) && (previousSession.purpose == currentSession.purpose)) water(); //if same session, do the section switch
