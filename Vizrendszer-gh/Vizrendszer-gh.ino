@@ -30,7 +30,7 @@
    1.3 - Implement new button for isCoolingWatering
    1.4 - Compiler fix, watering getting stuck fix
 */
-#define softwareVersion "1.3"
+#define softwareVersion "1.4"
 
 // BLYNK
 #define BLYNK_PRINT Serial
@@ -140,19 +140,19 @@ wateringZone zones[4];
 bool isPinkActive, isGreenActive, isBlueActive, isRedActive, isCoolingWatering;
 int pinkWeight, greenWeight, blueWeight, redWeight;
 void updateZones() {
-  if (isCoolingWatering) {
+  if (!isCoolingWatering && (currentSession.purpose == Cooling)) {
     wateringZone newZones[] = {
-      { isPinkActive, toPink, pinkWeight },
-      { isGreenActive, toGreen, greenWeight },
-      { isBlueActive, toBlue, blueWeight },
-      { isRedActive, toRed, redWeight }
+      { Active, toDump, 1 }
     };
     for (int i = 0; i < 4; i++) {
       zones[i] = newZones[i];
     }
   } else {
     wateringZone newZones[] = {
-      { Active, toDump, 1 }
+      { isPinkActive, toPink, pinkWeight },
+      { isGreenActive, toGreen, greenWeight },
+      { isBlueActive, toBlue, blueWeight },
+      { isRedActive, toRed, redWeight }
     };
     for (int i = 0; i < 4; i++) {
       zones[i] = newZones[i];
