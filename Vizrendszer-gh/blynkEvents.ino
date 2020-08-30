@@ -154,13 +154,13 @@ bool isThisWeekdaySelected(int thisWeekday) {
 }
 BLYNK_WRITE(V58) { //daily watering start at
   TimeInputParam t(param);
-  isMonday = t.isWeekdaySelected(1); //im sorry
-  isTuesday = t.isWeekdaySelected(2);
-  isWednesday = t.isWeekdaySelected(3);
-  isThursday = t.isWeekdaySelected(4);
-  isFriday = t.isWeekdaySelected(5);
-  isSaturday = t.isWeekdaySelected(6);
-  isSunday = t.isWeekdaySelected(7);
+  isMonday = !t.isWeekdaySelected(1); //im sorry
+  isTuesday = !t.isWeekdaySelected(2);
+  isWednesday = !t.isWeekdaySelected(3);
+  isThursday = !t.isWeekdaySelected(4);
+  isFriday = !t.isWeekdaySelected(5);
+  isSaturday = !t.isWeekdaySelected(6);
+  isSunday = !t.isWeekdaySelected(7);
   
   dailyWateringAtSeconds = param[0].asLong();
   if (dailyWateringAtSeconds == 0) dailyWateringAtSeconds = 60; //scheduler can't handle midnight, so if that's set, set it to 00:01.
