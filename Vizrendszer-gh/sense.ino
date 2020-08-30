@@ -22,9 +22,6 @@ void sense() { //Read data from temperature and humidity sensors and write it to
       if (bufferTempReadingIndex >= LEN(bufferTempReadings)) bufferTempReadingIndex = 0;
 
       bufferTemp = (float)bufferTempReadingsSum / LEN(bufferTempReadings);
-      terminal.print(thisReading);
-      terminal.print(", atlag: ");
-      terminal.println(bufferTemp);
 
       doTempReading = false;
     } else {

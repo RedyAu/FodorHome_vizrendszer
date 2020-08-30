@@ -122,10 +122,50 @@ BLYNK_WRITE(V56) { //watering start button
 BLYNK_WRITE(V57) { //watering duration (when next started)
   setWateringDuration = (unsigned long)((unsigned long)param.asInt() * 60) * 1000;
 }
+
+bool isMonday, isTuesday, isWednesday, isThursday, isFriday, isSaturday, isSunday;
+bool isThisWeekdaySelected(int thisWeekday) {
+  switch (thisWeekday) { //im so terribly sorry
+    case 1:
+      return isMonday;
+      break;
+    case 2:
+      return isTuesday;
+      break;
+    case 3:
+      return isWednesday;
+      break;
+    case 4:
+      return isThursday;
+      break;
+    case 5:
+      return isFriday;
+      break;
+    case 6:
+      return isSaturday;
+      break;
+    case 7:
+      return isSunday;
+      break;
+    default:
+      terminal.print("isThisWeekdaySelected invalid weekday");
+      error(1020);
+  }
+}
 BLYNK_WRITE(V58) { //daily watering start at
+  TimeInputParam t(param);
+  isMonday = t.isWeekdaySelected(1); //im sorry
+  isTuesday = t.isWeekdaySelected(2);
+  isWednesday = t.isWeekdaySelected(3);
+  isThursday = t.isWeekdaySelected(4);
+  isFriday = t.isWeekdaySelected(5);
+  isSaturday = t.isWeekdaySelected(6);
+  isSunday = t.isWeekdaySelected(7);
+  
   dailyWateringAtSeconds = param[0].asLong();
   if (dailyWateringAtSeconds == 0) dailyWateringAtSeconds = 60; //scheduler can't handle midnight, so if that's set, set it to 00:01.
 }
+
 BLYNK_WRITE(V59) { //skip next daily watering session
   skipNextWatering = param.asInt();
 }

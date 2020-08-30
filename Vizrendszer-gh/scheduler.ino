@@ -7,6 +7,7 @@ void scheduler() {
   //Yeah I really really do love myself some type casting
   
   if (!isPeriodicWateringEnabled) return;
+  if (!isThisWeekdaySelected((int)weekday(t))) return;
   if ((dailyWateringAtSeconds < secondsToday) && !doneToday) { //If we're past the set starting time
     if (!skipNextWatering) {
       beginWatering(setWateringDuration, Normal);

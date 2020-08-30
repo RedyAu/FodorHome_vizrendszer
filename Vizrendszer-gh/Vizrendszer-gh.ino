@@ -29,8 +29,9 @@
    1.2 - Rolling average implemented for fluctuating buffer temperature sensor. Fixed bug where watering starts after empty/watering for cooling.
    1.3 - Implement new button for isCoolingWatering
    1.4 - Compiler fix, watering getting stuck fix
+   1.5 - Implement watering on set weekdays
 */
-#define softwareVersion "1.4"
+#define softwareVersion "1.5"
 
 // BLYNK
 #define BLYNK_PRINT Serial
