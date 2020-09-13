@@ -1,5 +1,5 @@
 void jobStop() {
-  if (debug) terminal.println("debug jobStop;");
+  terminal.println("\njobDo: Stopping.");
 
   digitalWrite(mainPump, RelayOff);
 
@@ -52,61 +52,65 @@ void jobDo() {
     return;
   }
 
+  terminal.print("\njobDo: Starting water flow from the ");
+
   byte from[] = {fromWell, fromBuffer, fromWatering, fromGarage};
   digitalWriteGroup(from, LEN(from), RelayOff);
   switch (currentJob.from) {
     case fromWell://From Well
       digitalWrite(fromWell, RelayOn);
-      terminal.print("fromS fromWell;");
+      terminal.print("well");
       break;
     case fromBuffer://From Buffer
       digitalWrite(fromGarage, RelayOn);
       digitalWrite(fromBuffer, RelayOn);
-      terminal.print("fromS fromBuffer;");
+      terminal.print("buffer tank");
       break;
     case fromWatering://From Watering
       digitalWrite(fromGarage, RelayOn);
       digitalWrite(fromWatering, RelayOn);
-      terminal.print("fromS fromWatering;");
+      terminal.print("watering tank");
       break;
     default:
       error(100);
   }
+
+  terminal.print(", to the ");
 
   byte to[] = {toDump, toTap, toBuffer, toWatering, toPink, toGreen, toBlue, toRed};
   digitalWriteGroup(to, LEN(to), RelayOff);
   switch (currentJob.to) {
     case toDump:
       digitalWrite(toDump, RelayOn);
-      terminal.print("toS toDump;");
+      terminal.print("dump");
       break;
     case toTap:
       digitalWrite(toTap, RelayOn);
-      terminal.print("toS toTap;");
+      terminal.print("tap");
       break;
     case toBuffer:
       digitalWrite(toBuffer, RelayOn);
-      terminal.print("toS toBuffer;");
+      terminal.print("buffer tank");
       break;
     case toWatering:
       digitalWrite(toWatering, RelayOn);
-      terminal.print("toS toWatering;");
+      terminal.print("watering tank");
       break;
     case toPink:
       digitalWrite(toPink, RelayOn);
-      terminal.print("to pink;");
+      terminal.print("pink zone");
       break;
     case toGreen:
       digitalWrite(toGreen, RelayOn);
-      terminal.print("to green;");
+      terminal.print("green zone");
       break;
     case toBlue:
       digitalWrite(toBlue, RelayOn);
-      terminal.print("to blue;");
+      terminal.print("blue zone");
       break;
     case toRed:
       digitalWrite(toRed, RelayOn);
-      terminal.print("to red;");
+      terminal.print("red zone");
       break;
     /*case toGrey://To Grey
       break;*/
@@ -115,6 +119,6 @@ void jobDo() {
   }
 
   digitalWrite(mainPump, RelayOn);
-  terminal.print("mainPump 1;");
+  terminal.println(". Turning main pump On.\n");
   blynkJobUpdate();
 }

@@ -127,25 +127,25 @@ bool isMonday, isTuesday, isWednesday, isThursday, isFriday, isSaturday, isSunda
 bool isThisWeekdaySelected(int thisWeekday) {
   switch (thisWeekday) { //im so terribly sorry
     case 1:
-      return isMonday;
+      return isSunday;
       break;
     case 2:
-      return isTuesday;
+      return isMonday;
       break;
     case 3:
-      return isWednesday;
+      return isTuesday;
       break;
     case 4:
-      return isThursday;
+      return isWednesday;
       break;
     case 5:
-      return isFriday;
+      return isThursday;
       break;
     case 6:
-      return isSaturday;
+      return isFriday;
       break;
     case 7:
-      return isSunday;
+      return isSaturday;
       break;
     default:
       terminal.print("isThisWeekdaySelected invalid weekday");
@@ -154,13 +154,14 @@ bool isThisWeekdaySelected(int thisWeekday) {
 }
 BLYNK_WRITE(V58) { //daily watering start at
   TimeInputParam t(param);
-  isMonday = !t.isWeekdaySelected(1); //im sorry
-  isTuesday = !t.isWeekdaySelected(2);
-  isWednesday = !t.isWeekdaySelected(3);
-  isThursday = !t.isWeekdaySelected(4);
-  isFriday = !t.isWeekdaySelected(5);
-  isSaturday = !t.isWeekdaySelected(6);
-  isSunday = !t.isWeekdaySelected(7);
+  
+  isSunday = !t.isWeekdaySelected(1); //im sorry
+  isMonday = !t.isWeekdaySelected(2);
+  isTuesday = !t.isWeekdaySelected(3);
+  isWednesday = !t.isWeekdaySelected(4);
+  isThursday = !t.isWeekdaySelected(5);
+  isFriday = !t.isWeekdaySelected(6);
+  isSaturday = !t.isWeekdaySelected(7);
   
   dailyWateringAtSeconds = param[0].asLong();
   if (dailyWateringAtSeconds == 0) dailyWateringAtSeconds = 60; //scheduler can't handle midnight, so if that's set, set it to 00:01.

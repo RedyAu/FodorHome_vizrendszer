@@ -30,8 +30,9 @@
    1.3 - Implement new button for isCoolingWatering
    1.4 - Compiler fix, watering getting stuck fix
    1.5 - Implement watering on set weekdays
+   1.6 - Clean up watering start console output for bugfixing, report time for console outputs. Fixed: Now american style weekdays
 */
-#define softwareVersion "1.5"
+#define softwareVersion "1.6"
 
 // BLYNK
 #define BLYNK_PRINT Serial
@@ -233,5 +234,8 @@ void loop() {
     terminal.print(hour());
     terminal.print(":");
     terminal.println(minute());
+    terminal.print("Current weekday (1 = sunday): ");
+    terminal.println(weekday());
+    terminal.println(year());
   }
 }

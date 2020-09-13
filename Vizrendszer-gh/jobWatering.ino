@@ -16,7 +16,11 @@ int sumWeights;
 bool canMoveStart = false;
 
 void beginWatering(unsigned long duration, bool purpose) {  //calculate one unit time from duration and set weights - then continue
-  terminal.print("Begin A ");
+  terminal.print("Watering: START - Starting new watering session for ");
+  terminal.print(duration);
+  terminal.print(" milliseconds.\nPurpose: ");
+  terminal.println(purpose ? "Emptying the watering tank.\n\n" : "Watering for set duration.\n\n");
+  
   currentSession = emptySession;
   currentSession.duration = duration;
   currentSession.purpose = purpose;
@@ -26,8 +30,6 @@ void beginWatering(unsigned long duration, bool purpose) {  //calculate one unit
 
   if ((previousSession.duration == currentSession.duration) && (previousSession.purpose == currentSession.purpose)) water(); //if same session, do the section switch
 
-  terminal.println(currentSession.duration);
-  terminal.println("Begin B");
   previousSession = currentSession;
   currentSession.startTime = millis();
 
@@ -35,7 +37,6 @@ void beginWatering(unsigned long duration, bool purpose) {  //calculate one unit
 
   for (int i; i < LEN(zones); i++) {
     if (zones[i].isActive) {
-      terminal.println("Begin C");
       sumWeights += zones[i].weight;
     }
   }
@@ -61,13 +62,13 @@ bool water() {
       watering = false;
       canMoveStart = false;
       currentJob = {StopNext};
-      terminal.println("ABORTING/////////");
+      terminal.println("Watering: ABORTING - Current session didn't update for too long, deleting session and cancelling.");
       return Continue;
     } else if (canMoveStart) {
       //recalculate start so that after the break in watering, we continue where we left off.
       //take difference between start and lastAlive.
       //put start that amount of time before now.
-      terminal.println("MOVING START/////////");
+      terminal.println("Watering: SHIFTING - Current session did not update for a bit, compensating for time past without watering.");
       currentSession.startTime = millis() - (currentSession.lastAlive - currentSession.startTime);
     }
   }

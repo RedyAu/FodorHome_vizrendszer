@@ -5,16 +5,34 @@ void scheduler() {
   secondsToday += (unsigned long)((unsigned long)minute(t) * (unsigned long)60);
   secondsToday += (unsigned long)second(t);
   //Yeah I really really do love myself some type casting
-  
+
   if (!isPeriodicWateringEnabled) return;
-  if (!isThisWeekdaySelected((int)weekday(t))) return;
   if ((dailyWateringAtSeconds < secondsToday) && !doneToday) { //If we're past the set starting time
+    terminal.print("Scheduler: Set time of day reached: ");
+    terminal.print(hour(t));
+    terminal.print(":");
+    terminal.println(minute(t));
+    
+    if (!isThisWeekdaySelected((int)weekday(t))) {
+      terminal.print("But today's weekday, ");
+      terminal.print(weekday(t));
+      terminal.println(", is not selected for watering. Skipping.");
+      doneToday = true;
+      return;
+    }
+    
     if (!skipNextWatering) {
+      terminal.print("Today's weekday, ");
+      terminal.print(weekday(t));
+      terminal.println(", is selected for watering! Beginning daily session.");
+      
       beginWatering(setWateringDuration, Normal);
-      terminal.println("Beginning daily watering...");
     } else {
+      terminal.print("Today's weekday, ");
+      terminal.print(weekday(t));
+      terminal.println(", is selected for watering, but this session was set to be skipped. Will water next time.");
+      
       skipNextWatering = false;
-      terminal.println("Skipping today's watering session...");
     }
     doneToday = true;
   }
