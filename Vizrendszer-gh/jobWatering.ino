@@ -16,10 +16,10 @@ int sumWeights;
 bool canMoveStart = false;
 
 void beginWatering(unsigned long duration, bool purpose) {  //calculate one unit time from duration and set weights - then continue
-  terminal.print("Watering: START - Starting new watering session for ");
+  terminal.print("\n\nWatering: Starting new watering session for ");
   terminal.print(duration);
   terminal.print(" milliseconds.\nPurpose: ");
-  terminal.println(purpose ? "Emptying the watering tank.\n\n" : "Watering for set duration.\n\n");
+  terminal.println(purpose ? "Emptying the watering tank.\n" : "Watering for set duration.\n");
   
   currentSession = emptySession;
   currentSession.duration = duration;

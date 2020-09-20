@@ -1,6 +1,6 @@
 void blynkSync() {
   //terminal.println("Sync...");
-  
+
   //Update water levels
   Blynk.virtualWrite(V40, levelOf(Buffer));
   Blynk.virtualWrite(V41, levelOf(Watering));
@@ -17,10 +17,10 @@ void blynkSync() {
   Blynk.virtualWrite(V64, isCoolingWatering);
 
   //Update watering stuff
-  Blynk.virtualWrite(V59, skipNextWatering); 
+  Blynk.virtualWrite(V59, skipNextWatering);
   Blynk.virtualWrite(V56, watering);
   Blynk.virtualWrite(V61, doneToday ? 255 : 0);
-  
+
   if (watering) {
     long double wateringProgressRatio = (long double)currentSession.elapsedTime / (long double)currentSession.duration;
     long double wateringProgress = (long double)1024 * wateringProgressRatio;
@@ -154,15 +154,24 @@ bool isThisWeekdaySelected(int thisWeekday) {
 }
 BLYNK_WRITE(V58) { //daily watering start at
   TimeInputParam t(param);
-  
-  isSunday = !t.isWeekdaySelected(1); //im sorry
-  isMonday = !t.isWeekdaySelected(2);
-  isTuesday = !t.isWeekdaySelected(3);
-  isWednesday = !t.isWeekdaySelected(4);
-  isThursday = !t.isWeekdaySelected(5);
-  isFriday = !t.isWeekdaySelected(6);
-  isSaturday = !t.isWeekdaySelected(7);
-  
+
+   //im sorry
+  isMonday = t.isWeekdaySelected(1);
+  isTuesday = t.isWeekdaySelected(2);
+  isWednesday = t.isWeekdaySelected(3);
+  isThursday = t.isWeekdaySelected(4);
+  isFriday = t.isWeekdaySelected(5);
+  isSaturday = t.isWeekdaySelected(6);
+  isSunday = t.isWeekdaySelected(7);
+
+  /*terminal.println(isThisWeekdaySelected(1) ? "Weekday 1 is selected" : "Weekday 1 is not selected");
+  terminal.println(isThisWeekdaySelected(2) ? "Weekday 2 is selected" : "Weekday 2 is not selected");
+  terminal.println(isThisWeekdaySelected(3) ? "Weekday 3 is selected" : "Weekday 3 is not selected");
+  terminal.println(isThisWeekdaySelected(4) ? "Weekday 4 is selected" : "Weekday 4 is not selected");
+  terminal.println(isThisWeekdaySelected(5) ? "Weekday 5 is selected" : "Weekday 5 is not selected");
+  terminal.println(isThisWeekdaySelected(6) ? "Weekday 6 is selected" : "Weekday 6 is not selected");
+  terminal.println(isThisWeekdaySelected(7) ? "Weekday 7 is selected" : "Weekday 7 is not selected");*/
+
   dailyWateringAtSeconds = param[0].asLong();
   if (dailyWateringAtSeconds == 0) dailyWateringAtSeconds = 60; //scheduler can't handle midnight, so if that's set, set it to 00:01.
 }

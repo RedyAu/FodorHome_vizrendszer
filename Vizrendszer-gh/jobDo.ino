@@ -1,5 +1,5 @@
 void jobStop() {
-  terminal.println("\njobDo: Stopping.");
+  terminal.println("\njobDo: Stopping.\n");
 
   digitalWrite(mainPump, RelayOff);
 
@@ -52,7 +52,7 @@ void jobDo() {
     return;
   }
 
-  terminal.print("\njobDo: Starting water flow from the ");
+  terminal.print("jobDo: ");
 
   byte from[] = {fromWell, fromBuffer, fromWatering, fromGarage};
   digitalWriteGroup(from, LEN(from), RelayOff);
@@ -75,7 +75,7 @@ void jobDo() {
       error(100);
   }
 
-  terminal.print(", to the ");
+  terminal.print(" -> ");
 
   byte to[] = {toDump, toTap, toBuffer, toWatering, toPink, toGreen, toBlue, toRed};
   digitalWriteGroup(to, LEN(to), RelayOff);
@@ -119,6 +119,6 @@ void jobDo() {
   }
 
   digitalWrite(mainPump, RelayOn);
-  terminal.println(". Turning main pump On.\n");
+  terminal.println();
   blynkJobUpdate();
 }

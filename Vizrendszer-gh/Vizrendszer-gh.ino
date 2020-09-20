@@ -31,8 +31,9 @@
    1.4 - Compiler fix, watering getting stuck fix
    1.5 - Implement watering on set weekdays
    1.6 - Clean up watering start console output for bugfixing, report time for console outputs. Fixed: Now american style weekdays
+   1.7 - Actually fix watering scheduling, even cleaner watering terminal output
 */
-#define softwareVersion "1.6"
+#define softwareVersion "1.7"
 
 // BLYNK
 #define BLYNK_PRINT Serial
