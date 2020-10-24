@@ -7,10 +7,10 @@
    0.2: Show version on startup. Only toggle one pin (changed relay module).
 */
 
-const String softwareVersion = "0.2"
+const String softwareVersion = "0.2";
 
 #include <EEPROM.h>
-                               const int setTempA = 10;
+const int setTempA = 10;
 
 #include <Encoder.h>
 Encoder setTempEnc(2, 3);
@@ -76,27 +76,24 @@ bool heat = false;
 void loop() {
 
   // Encoder
-  void doEncoder() {
-    if (UImode == 2) {
-      long NsetTemp = setTempEnc.read() / 4;
-      if (NsetTemp != setTemp) {
-        setTemp = NsetTemp;
-        doUI();
-      }
-    }
-
-    if (forMiddleRead < millis()) {
-      forMiddleRead = millis() + middleReadFreq;
-
-      bool NmiddleState = !digitalRead(middleSwitchPin);
-      if (NmiddleState != middleState) {
-        middleState = NmiddleState;
-        if (middleState) doMiddle();
-        else doneMiddle = false;
-      }
+  if (UImode == 2) {
+    long NsetTemp = setTempEnc.read() / 4;
+    if (NsetTemp != setTemp) {
+      setTemp = NsetTemp;
+      doUI();
     }
   }
 
+  if (forMiddleRead < millis()) {
+    forMiddleRead = millis() + middleReadFreq;
+
+    bool NmiddleState = !digitalRead(middleSwitchPin);
+    if (NmiddleState != middleState) {
+      middleState = NmiddleState;
+      if (middleState) doMiddle();
+      else doneMiddle = false;
+    }
+  }
   // \Encoder
 
   //DHT
