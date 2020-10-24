@@ -4,26 +4,28 @@
    Versions:
    0.0: First operating version
    0.1: Implementing EEPROM
+   0.2: Show version on startup. Only toggle one pin (changed relay module).
 */
 
+const String softwareVersion = "0.2"
+
 #include <EEPROM.h>
-static int setTempA = 10;
+                               const int setTempA = 10;
 
 #include <Encoder.h>
 Encoder setTempEnc(2, 3);
-static int middleSwitchPin = 4;
+const int middleSwitchPin = 4;
 
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 LiquidCrystal_I2C lcd(0x3F, 16, 2);
 
 #include <DHT.h>
-static int dhtPin = 5;
+const int dhtPin = 5;
 DHT dht(dhtPin, DHT11);
 
-static int oLED = 13;
-static int oRelay2 = 12;
-static int oRelay1 = 11;
+const int oLED = 13;
+const int oRelay = 11;
 
 int UImode; //1: Normal screen; 2: Set temperature; 3: Display error code
 long setTemp = 0; //Stores temperature 10X - So 12.4C is 124.
@@ -35,16 +37,15 @@ void setup() {
 
   lcd.backlight();
   lcd.setCursor(0, 0);
-  lcd.print("   Inditas...");
+  lcd.print("Inditas... ");
+  lcd.print(softwareVersion);
   lcd.setCursor(0, 1);
   lcd.print("FodorHOME>>Kamra");
 
   pinMode(middleSwitchPin, INPUT_PULLUP);
   pinMode(oLED, OUTPUT);
-  pinMode(oRelay1, OUTPUT);
-  pinMode(oRelay2, OUTPUT);
-  digitalWrite(oRelay1, HIGH);
-  digitalWrite(oRelay2, HIGH);
+  pinMode(oRelay, OUTPUT);
+  digitalWrite(oRelay, HIGH);
 
   EEPROM.get(setTempA, setTemp);
   if (setTemp == 0) UImode = 2;
@@ -75,25 +76,28 @@ bool heat = false;
 void loop() {
 
   // Encoder
-  if (UImode == 2) {
-    long NsetTemp = setTempEnc.read() / 4;
-    if (NsetTemp != setTemp) {
-      setTemp = NsetTemp;
-      doUI();
+  void doEncoder() {
+    if (UImode == 2) {
+      long NsetTemp = setTempEnc.read() / 4;
+      if (NsetTemp != setTemp) {
+        setTemp = NsetTemp;
+        doUI();
+      }
+    }
+
+    if (forMiddleRead < millis()) {
+      forMiddleRead = millis() + middleReadFreq;
+
+      bool NmiddleState = !digitalRead(middleSwitchPin);
+      if (NmiddleState != middleState) {
+        middleState = NmiddleState;
+        if (middleState) doMiddle();
+        else doneMiddle = false;
+      }
     }
   }
 
-  if (forMiddleRead < millis()) {
-    forMiddleRead = millis() + middleReadFreq;
-
-    bool NmiddleState = !digitalRead(middleSwitchPin);
-    if (NmiddleState != middleState) {
-      middleState = NmiddleState;
-      if (middleState) doMiddle();
-      else doneMiddle = false;
-    }
-  }// \Encoder
-
+  // \Encoder
 
   //DHT
   if (UImode == 1 && forDhtRead < millis()) {
@@ -130,11 +134,11 @@ void doHeat() {
 void doOutput() {
   if (heat) {
     digitalWrite(oLED, HIGH);
-    digitalWrite(oRelay1, LOW); //Relays work backwards...
+    digitalWrite(oRelay, LOW); //Relays work backwards...
   }
   else {
     digitalWrite(oLED, LOW);
-    digitalWrite(oRelay1, HIGH); //Relays work backwards...
+    digitalWrite(oRelay, HIGH); //Relays work backwards...
   }
 }
 
@@ -164,7 +168,7 @@ void doUI() {
       lcd.setCursor(1, 1);
       lcd.print(printHum, 0);
       lcd.print(" %  ");
-      lcd.setCursor(8,1);
+      lcd.setCursor(8, 1);
       lcd.print("BEALLIT>");
       break;
 
