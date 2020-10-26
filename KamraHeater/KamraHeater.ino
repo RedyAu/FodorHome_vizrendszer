@@ -11,12 +11,13 @@
    0.1: Implementing EEPROM
    0.2: Show version on startup. Only toggle one pin (changed relay module).
    1.0: Broken button: implemented automatic temperature set mode with timeout.
+   1.1: Sleep functionality
 */
 
 #define RelayON LOW
 #define RelayOFF HIGH
 
-const String softwareVersion = "v1.0";
+const String softwareVersion = "v1.1";
 
 #include <EEPROM.h>
 
@@ -50,6 +51,9 @@ const int dhtReadFreq = 3000;
 unsigned long lastUI;
 const int UIfreq = 200;
 
+const unsigned long sleepTimeout = 600000; //10 min
+bool isSleep = false;
+
 int nowTemp;
 int nowHum;
 
@@ -80,17 +84,33 @@ void setup() {
 }
 
 void loop() {
+  if (millis() - lastSet > sleepTimeout) {
+    isSleep = true;
+    lcd.clear();
+    lcd.noBacklight();
+  }
+
   doSetTimer();
   // Encoder
   long NsetTemp = setTempEnc.read() / 4;
   if (NsetTemp != setTemp) {
     lastSet = millis();
-    
+
+    if (isSleep) {
+      lcd.backlight();
+      isSleep = false;
+      doUI;
+      delay(1500);
+      setTempEnc.write(setTemp * 4);
+      return;
+    }
+    setTemp = NsetTemp;
+
+
     error = 0;
     UImode = 2;
     if (UImode != 2) lcd.clear();
-    
-    setTemp = NsetTemp;
+
     doUI();
     return;//Update screen fasterrr
   }
@@ -113,9 +133,9 @@ void loop() {
     doHeat();
   }
 
-  doUI();
-
   doOutput();
+
+  doUI();
 }
 
 static int tempTreshold = 5; //In C, X10 (so 5 = 0.5C)
@@ -137,6 +157,7 @@ void doOutput() {
 }
 
 void doUI() {
+  if (isSleep) return;
 
   if (millis() - lastUI > UIfreq) {
     lastUI = millis();
@@ -211,7 +232,7 @@ void doUI() {
 
 void doSetTimer() {
   if (error || (UImode != 2)) return;
-  
+
   unsigned long lastSetAgo = millis() - lastSet;
 
   if (lastSetAgo < 10) setTimeoutStep = -1; //don't overwrite the bottom row every tick
@@ -220,9 +241,9 @@ void doSetTimer() {
   else if (lastSetAgo < 2000) setTimeoutStep = 2;
   else if (lastSetAgo < 2500) setTimeoutStep = 3;
   else if (lastSetAgo < 3000) setTimeoutStep = 4;
-  else {    
+  else {
     EEPROM.put(setTempA, setTemp);
-    
+
     UImode = 1;
     lcd.clear();
     doUI();
