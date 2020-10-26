@@ -42,7 +42,7 @@ const int oRelay = 5;
 int UImode; //1: Normal screen; 2: Set temperature; 3: Display error code
 int setTemp = 0; //Stores temperature 10X - So 12.3C is 123.
 
-int error = 4; //0 means no error. When non-0, most functions halt, and error is displayed.
+int error = 0; //0 means no error. When non-0, most functions halt, and error is displayed.
 
 unsigned long lastDhtRead;
 const int dhtReadFreq = 3000;
