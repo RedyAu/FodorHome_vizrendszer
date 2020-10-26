@@ -86,7 +86,10 @@ void loop() {
   if (NsetTemp != setTemp) {
     lastSet = millis();
     
-    if (UImode == 1) UImode = 2;
+    if (UImode == 1) {
+      lcd.clear();
+      UImode = 2;
+    }
     
     setTemp = NsetTemp;
     doUI();
@@ -169,8 +172,8 @@ void doUI() {
       break;
 
     case 2: //set
-      lcd.setCursor(0, 0);
-      lcd.print("       >");
+      lcd.setCursor(7, 0);
+      lcd.print(">");
       lcd.print(printSetTemp, 1);
       lcd.print("C<  ");
 
@@ -180,13 +183,13 @@ void doUI() {
           lcd.print("                ");
           break;
         case 1:
-          lcd.print("       ##       ");
+          lcd.print("          #     ");
           break;
         case 2:
-          lcd.print("      ####      ");
+          lcd.print("         ###    ");
           break;
         case 3:
-          lcd.print("   ##########   ");
+          lcd.print("      ######### ");
           break;
         case 4:
           lcd.print("################");
@@ -212,7 +215,8 @@ void doSetTimer() {
   
   unsigned long lastSetAgo = millis() - lastSet;
 
-  if (lastSetAgo < 1000) setTimeoutStep = 0;
+  if (lastSetAgo < 10) setTimeoutStep = -1; //don't overwrite the bottom row every tick
+  else if (lastSetAgo < 1000) setTimeoutStep = 0;
   else if (lastSetAgo < 1500) setTimeoutStep = 1;
   else if (lastSetAgo < 2000) setTimeoutStep = 2;
   else if (lastSetAgo < 2500) setTimeoutStep = 3;
