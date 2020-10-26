@@ -42,7 +42,7 @@ const int oRelay = 5;
 int UImode; //1: Normal screen; 2: Set temperature; 3: Display error code
 int setTemp = 0; //Stores temperature 10X - So 12.3C is 123.
 
-int error = 0; //0 means no error. When non-0, most functions halt, and error is displayed.
+int error = 4; //0 means no error. When non-0, most functions halt, and error is displayed.
 
 unsigned long lastDhtRead;
 const int dhtReadFreq = 3000;
@@ -86,10 +86,9 @@ void loop() {
   if (NsetTemp != setTemp) {
     lastSet = millis();
     
-    if (UImode == 1) {
-      lcd.clear();
-      UImode = 2;
-    }
+    error = 0;
+    UImode = 2;
+    if (UImode != 2) lcd.clear();
     
     setTemp = NsetTemp;
     doUI();
@@ -119,7 +118,7 @@ void loop() {
   doOutput();
 }
 
-static int tempTreshold = 5; //In C, X10
+static int tempTreshold = 5; //In C, X10 (so 5 = 0.5C)
 
 void doHeat() {
   if (nowTemp < setTemp) heat = true;
