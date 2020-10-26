@@ -1,37 +1,61 @@
-/* Written by Benedek Fodor
+/* Written by Benedek Fodor in 2019-2020
    For controlling the heater system in the chamber; as part of the KÚTKLÍMA/FodorHome System
 
+   ERRORS:
+   0: DHT error
+   1: Temperature error
+   2: Humidity error
+
    Versions:
-   0.0: First operating version
+   0.0: First test version
    0.1: Implementing EEPROM
    0.2: Show version on startup. Only toggle one pin (changed relay module).
+   1.0: Broken button: implemented automatic temperature set mode with timeout.
 */
 
-const String softwareVersion = "0.2";
+#define RelayON LOW
+#define RelayOFF HIGH
+
+const String softwareVersion = "v1.0";
 
 #include <EEPROM.h>
+
 const int setTempA = 10;
 
 #include <Encoder.h>
-Encoder setTempEnc(2, 3);
-const int middleSwitchPin = 4;
+Encoder setTempEnc(3, 2);
 
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 LiquidCrystal_I2C lcd(0x3F, 16, 2);
 
 #include <DHT.h>
-const int dhtPin = 5;
+const int dhtPin = 8;
 DHT dht(dhtPin, DHT11);
 
+unsigned long lastSet;
+int setTimeoutStep = 0;
+
 const int oLED = 13;
-const int oRelay = 11;
+const int oRelay = 5;
 
 int UImode; //1: Normal screen; 2: Set temperature; 3: Display error code
-long setTemp = 0; //Stores temperature 10X - So 12.4C is 124.
+int setTemp = 0; //Stores temperature 10X - So 12.3C is 123.
+
+int error = 0; //0 means no error. When non-0, most functions halt, and error is displayed.
+
+unsigned long lastDhtRead;
+const int dhtReadFreq = 3000;
+
+unsigned long lastUI;
+const int UIfreq = 200;
+
+int nowTemp;
+int nowHum;
+
+bool heat = false;
 
 void setup() {
-
   lcd.init();
   dht.begin();
 
@@ -42,12 +66,12 @@ void setup() {
   lcd.setCursor(0, 1);
   lcd.print("FodorHOME>>Kamra");
 
-  pinMode(middleSwitchPin, INPUT_PULLUP);
   pinMode(oLED, OUTPUT);
   pinMode(oRelay, OUTPUT);
   digitalWrite(oRelay, HIGH);
 
   EEPROM.get(setTempA, setTemp);
+  setTempEnc.write(setTemp * 4);
   if (setTemp == 0) UImode = 2;
   else UImode = 1;
 
@@ -55,54 +79,30 @@ void setup() {
   lcd.clear();
 }
 
-int error = 0; //0 means no error. When non-0, most functions halt, and error is displayed. (not yet implemented)
-
-bool doneMiddle = false;
-bool middleState = false; //True means pressed down
-unsigned long forMiddleRead; //At this millis() time, we'll check button state again (crude debounce);
-static int middleReadFreq = 15; //Read middle button with this ms interval
-
-unsigned long forDhtRead;
-static int dhtReadFreq = 3000;
-
-unsigned long forUI;
-static int UIfreq = 200;
-
-int nowTemp;
-int nowHum;
-
-bool heat = false;
-
 void loop() {
-
+  doSetTimer();
   // Encoder
-  if (UImode == 2) {
-    long NsetTemp = setTempEnc.read() / 4;
-    if (NsetTemp != setTemp) {
-      setTemp = NsetTemp;
-      doUI();
-    }
-  }
-
-  if (forMiddleRead < millis()) {
-    forMiddleRead = millis() + middleReadFreq;
-
-    bool NmiddleState = !digitalRead(middleSwitchPin);
-    if (NmiddleState != middleState) {
-      middleState = NmiddleState;
-      if (middleState) doMiddle();
-      else doneMiddle = false;
-    }
+  long NsetTemp = setTempEnc.read() / 4;
+  if (NsetTemp != setTemp) {
+    lastSet = millis();
+    
+    if (UImode == 1) UImode = 2;
+    
+    setTemp = NsetTemp;
+    doUI();
+    return;//Update screen fasterrr
   }
   // \Encoder
 
   //DHT
-  if (UImode == 1 && forDhtRead < millis()) {
-    forDhtRead = millis() + dhtReadFreq;
+  if (UImode == 1 && millis() - lastDhtRead > dhtReadFreq) {
+    lastDhtRead = millis();
 
     float T = dht.readTemperature();
     float H = dht.readHumidity();
-    if (isnan(T) || isnan(H)) error = 1;
+    if (isnan(T)) error = 1;
+    if (isnan(H)) error = 2;
+    if (isnan(T) && isnan(H)) error = 0;
     T *= 10;
     nowTemp = T;
     H *= 10;
@@ -111,12 +111,7 @@ void loop() {
     doHeat();
   }
 
-  //UI
-  if (forUI < millis()) {
-    forUI = millis() + UIfreq;
-
-    doUI();
-  }
+  doUI();
 
   doOutput();
 }
@@ -131,15 +126,19 @@ void doHeat() {
 void doOutput() {
   if (heat) {
     digitalWrite(oLED, HIGH);
-    digitalWrite(oRelay, LOW); //Relays work backwards...
+    digitalWrite(oRelay, RelayON);
   }
   else {
     digitalWrite(oLED, LOW);
-    digitalWrite(oRelay, HIGH); //Relays work backwards...
+    digitalWrite(oRelay, RelayOFF);
   }
 }
 
 void doUI() {
+
+  if (millis() - lastUI > UIfreq) {
+    lastUI = millis();
+  } else return;
 
   if (error) UImode = 3;
 
@@ -159,14 +158,14 @@ void doUI() {
       lcd.print("!");
       lcd.print(printSetTemp, 1);
       lcd.print("C  ");
-      lcd.setCursor(15, 0);
-      heat ? lcd.print("F") : lcd.print("_");
 
       lcd.setCursor(1, 1);
       lcd.print(printHum, 0);
       lcd.print(" %  ");
-      lcd.setCursor(8, 1);
-      lcd.print("BEALLIT>");
+      lcd.setCursor(14, 1);
+      heat
+      ? lcd.print("BE")
+      : lcd.print("KI");
       break;
 
     case 2: //set
@@ -176,7 +175,23 @@ void doUI() {
       lcd.print("C<  ");
 
       lcd.setCursor(0, 1);
-      lcd.print("           KESZ>");
+      switch (setTimeoutStep) {
+        case 0:
+          lcd.print("                ");
+          break;
+        case 1:
+          lcd.print("       ##       ");
+          break;
+        case 2:
+          lcd.print("      ####      ");
+          break;
+        case 3:
+          lcd.print("   ##########   ");
+          break;
+        case 4:
+          lcd.print("################");
+          break;
+      }
       break;
 
     case 3: //error
@@ -186,31 +201,27 @@ void doUI() {
       lcd.print(error);
 
       lcd.setCursor(0, 1);
-      lcd.print("        RENDBEN>");
+      lcd.print("     RENDBEN: <>");
       break;
 
   }
 }
 
-void doMiddle() {
-  if (doneMiddle) return;
-  else doneMiddle = true;
+void doSetTimer() {
+  if (error || (UImode != 2)) return;
+  
+  unsigned long lastSetAgo = millis() - lastSet;
 
-  if (!error) {
-    if (UImode == 1) {
-      setTempEnc.write(setTemp * 4);
-      UImode = 2;
-    }
-    else if (UImode == 2) {
-      EEPROM.put(setTempA, setTemp);
-      UImode = 1;
-    }
-  }
-  else {
-    error = 0;
+  if (lastSetAgo < 1000) setTimeoutStep = 0;
+  else if (lastSetAgo < 1500) setTimeoutStep = 1;
+  else if (lastSetAgo < 2000) setTimeoutStep = 2;
+  else if (lastSetAgo < 2500) setTimeoutStep = 3;
+  else if (lastSetAgo < 3000) setTimeoutStep = 4;
+  else {    
+    EEPROM.put(setTempA, setTemp);
+    
     UImode = 1;
+    lcd.clear();
+    doUI();
   }
-
-  lcd.clear();
-  doUI();
 }
