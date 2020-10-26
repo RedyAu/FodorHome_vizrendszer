@@ -20,7 +20,7 @@ const String softwareVersion = "v1.0";
 
 #include <EEPROM.h>
 
-const int setTempA = 10;
+const int setTempA = 30;
 
 #include <Encoder.h>
 Encoder setTempEnc(3, 2);
@@ -183,13 +183,13 @@ void doUI() {
           lcd.print("                ");
           break;
         case 1:
-          lcd.print("          #     ");
+          lcd.print("           #    ");
           break;
         case 2:
-          lcd.print("         ###    ");
+          lcd.print("          ###   ");
           break;
         case 3:
-          lcd.print("      ######### ");
+          lcd.print("       #########");
           break;
         case 4:
           lcd.print("################");
