@@ -157,7 +157,7 @@ void doUI() {
       lcd.setCursor(1, 0);
       lcd.print(printTemp, 1);
       lcd.print("C  ");
-      lcd.setCursor(7, 0);
+      lcd.setCursor(8, 0);
       lcd.print("!");
       lcd.print(printSetTemp, 1);
       lcd.print("C  ");
@@ -172,7 +172,7 @@ void doUI() {
       break;
 
     case 2: //set
-      lcd.setCursor(7, 0);
+      lcd.setCursor(8, 0);
       lcd.print(">");
       lcd.print(printSetTemp, 1);
       lcd.print("C<  ");
