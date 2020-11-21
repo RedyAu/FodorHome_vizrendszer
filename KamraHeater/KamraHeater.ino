@@ -12,12 +12,13 @@
    0.2: Show version on startup. Only toggle one pin (changed relay module).
    1.0: Broken button: implemented automatic temperature set mode with timeout.
    1.1: Sleep functionality
+   1.2: Display heater on percentage during last hour, new icons on screen
 */
 
 #define RelayON LOW
 #define RelayOFF HIGH
 
-const String softwareVersion = "v1.1";
+const String softwareVersion = "v1.2";
 
 #include <EEPROM.h>
 
@@ -45,7 +46,10 @@ int setTemp = 0; //Stores temperature 10X - So 12.3C is 123.
 
 int error = 0; //0 means no error. When non-0, most functions halt, and error is displayed.
 
-unsigned long lastDhtRead;
+unsigned long lastOnCheck;
+const unsigned long onCheckFreq = 60000;
+
+unsigned long lastDhtRead = 0;
 const int dhtReadFreq = 3000;
 
 unsigned long lastUI;
@@ -60,6 +64,9 @@ int nowHum;
 bool heat = false;
 
 void setup() {
+  Serial.begin(9600);
+  Serial.println(softwareVersion);
+
   lcd.init();
   dht.begin();
 
@@ -69,6 +76,7 @@ void setup() {
   lcd.print(softwareVersion);
   lcd.setCursor(0, 1);
   lcd.print("FodorHOME>>Kamra");
+  createChars();
 
   pinMode(oLED, OUTPUT);
   pinMode(oRelay, OUTPUT);
@@ -133,6 +141,11 @@ void loop() {
     doHeat();
   }
 
+  if (millis() - lastOnCheck > onCheckFreq) {
+    lastOnCheck = millis();
+    updateOnPercentage();
+  }
+
   doOutput();
 
   doUI();
@@ -175,17 +188,25 @@ void doUI() {
   switch (UImode) {
     case 1: //normal
       lcd.setCursor(1, 0);
+      lcd.write(0);
       lcd.print(printTemp, 1);
       lcd.print("C  ");
-      lcd.setCursor(8, 0);
-      lcd.print("!");
+      lcd.setCursor(9, 0);
+      lcd.write(1);
       lcd.print(printSetTemp, 1);
       lcd.print("C  ");
 
       lcd.setCursor(1, 1);
+      lcd.write(2);
       lcd.print(printHum, 0);
-      lcd.print(" %  ");
-      lcd.setCursor(14, 1);
+      lcd.print("%  ");
+
+      lcd.write(3);
+      lcd.print(getOnPercentage());
+      lcd.print("% ");
+
+      lcd.setCursor(13, 1);
+      lcd.write(4);
       heat
       ? lcd.print("BE")
       : lcd.print("KI");
