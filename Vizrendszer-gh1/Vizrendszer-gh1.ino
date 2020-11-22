@@ -32,7 +32,7 @@
    1.5 - Implement watering on set weekdays
    1.6 - Clean up watering start console output for bugfixing, report time for console outputs. Fixed: Now american style weekdays
    1.7 - Actually fix watering scheduling, even cleaner watering terminal output
-   1.8 - All valves open serial command
+   1.8 - All valves open serial command and button
 */
 #define softwareVersion "1.8"
 
@@ -109,6 +109,8 @@ const int flowPump = 29;
 #define RelayOn LOW //optocoupler relays turn on when grounded
 #define RelayOff HIGH
 
+#define AllValves 999
+
 //Data structures
 #define StopNext true //waterJob
 #define NoStopNext false
@@ -164,12 +166,12 @@ void updateZones() {
   }
 }
 
-const byte fromValves[] = {fromWell, fromGarage, fromBuffer, fromWatering};
-const byte toValves[] = {toTap, toDump, toPink, toGreen, toBlue, toRed/*, toGrey*/};
+byte fromValves[] = {/*fromWell, fromGarage, fromBuffer, fromWatering*/};
+byte toValves[] = {/*toWatering, toBuffer,*/ toTap, toDump, toPink, toGreen, toBlue, toRed/*, toGrey*/};
 
-const byte output[] = {22, 23, 24, 25, 30, 31, 32, 33, 34, 35, 36, 37, 26, 27, 28, 29};
-const byte input[] = {39, 41, 44, 45, 46, A8};
-const byte input_pullup[] = {47};
+byte output[] = {22, 23, 24, 25, 30, 31, 32, 33, 34, 35, 36, 37, 26, 27, 28, 29};
+byte input[] = {39, 41, 44, 45, 46, A8};
+byte input_pullup[] = {47};
 
 //Globals
 
