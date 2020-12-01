@@ -13,12 +13,13 @@
    1.0: Broken button: implemented automatic temperature set mode with timeout.
    1.1: Sleep functionality
    1.2: Display heater on percentage during last hour, new icons on screen
+   1.3: Display how long ago was the heater last on
 */
 
 #define RelayON LOW
 #define RelayOFF HIGH
 
-const String softwareVersion = "v1.2";
+const String softwareVersion = "v1.3-pre";
 
 #include <EEPROM.h>
 
@@ -48,6 +49,15 @@ int error = 0; //0 means no error. When non-0, most functions halt, and error is
 
 unsigned long lastOnCheck;
 const unsigned long onCheckFreq = 60000;
+
+unsigned long lastOn = 0;
+int lastOnUnit = 0;
+int lastOnValue = 0;
+#define NoValue 0;
+#define Seconds 1;
+#define Minutes 2;
+#define Hours 3;
+#define MaxValue 4;
 
 unsigned long lastDhtRead = 0;
 const int dhtReadFreq = 3000;
@@ -154,7 +164,10 @@ void loop() {
 static int tempTreshold = 5; //In C, X10 (so 5 = 0.5C)
 
 void doHeat() {
-  if (nowTemp < setTemp) heat = true;
+  if (nowTemp < setTemp) {
+    heat = true;
+    lastOn = millis();
+  }
   else if (nowTemp > setTemp + tempTreshold) heat = false;
 }
 
@@ -184,32 +197,51 @@ void doUI() {
   printSetTemp /= 10;
   float printHum = nowHum;
   printHum /= 10;
+  if (printHum == 100) printHum = 99; //To make last row fit on screen
 
   switch (UImode) {
     case 1: //normal
-      lcd.setCursor(1, 0);
+      lcd.setCursor(0, 0);
       lcd.write(0);
       lcd.print(printTemp, 1);
       lcd.print("C  ");
-      lcd.setCursor(9, 0);
-      lcd.write(1);
+      lcd.setCursor(7, 0);
+      lcd.print("!");
       lcd.print(printSetTemp, 1);
       lcd.print("C  ");
+      lcd.setCursor(15, 0);
+      lcd.write(heat ? 3 : 4);
 
-      lcd.setCursor(1, 1);
+      lcd.setCursor(0, 1);
       lcd.write(2);
       lcd.print(printHum, 0);
-      lcd.print("%  ");
+      lcd.print("%");
 
-      lcd.write(3);
+      lcd.setCursor(5, 1);
+      lcd.write(5);
       lcd.print(getOnPercentage());
       lcd.print("% ");
-
-      lcd.setCursor(13, 1);
-      lcd.write(4);
-      heat
-      ? lcd.print("BE")
-      : lcd.print("KI");
+      lcd.write(6);
+      switch (lastOnUnit) {
+        case NoValue:
+          lcd.print("---");
+          break;
+        case Seconds:
+          lcd.print(lastOnValue);
+          lcd.print("s")
+          break;
+        case Minutes:
+          lcd.print(lastOnValue);
+          lcd.print("m");
+          break;
+        case Hours:
+          lcd.print(lastOnValue);
+          lcd.print("h");
+          break;
+        case MaxValue:
+          lcd.print("+++");
+          break;
+      }
       break;
 
     case 2: //set
