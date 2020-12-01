@@ -45,7 +45,7 @@ int getOnPercentage() {
 
 void updateLastOnDisplay() {
   unsigned long difference = millis() - lastOn;
-  if ((lastOn == 0) || (difference < 1000)) {
+  if ((lastOn == 0) || (difference < 5000)) {
     lastOnUnit = NoValue;
   } else if (difference < 60000) {
     lastOnUnit = Seconds;

@@ -19,7 +19,7 @@
 #define RelayON LOW
 #define RelayOFF HIGH
 
-const String softwareVersion = "v1.3-pre";
+const String softwareVersion = "v1.3";
 
 #include <EEPROM.h>
 
@@ -53,11 +53,11 @@ const unsigned long onCheckFreq = 60000;
 unsigned long lastOn = 0;
 int lastOnUnit = 0;
 int lastOnValue = 0;
-#define NoValue 0;
-#define Seconds 1;
-#define Minutes 2;
-#define Hours 3;
-#define MaxValue 4;
+#define NoValue 0
+#define Seconds 1
+#define Minutes 2
+#define Hours 3
+#define MaxValue 4
 
 unsigned long lastDhtRead = 0;
 const int dhtReadFreq = 3000;
@@ -216,7 +216,8 @@ void doUI() {
       lcd.write(2);
       lcd.print(printHum, 0);
       lcd.print("%");
-
+      
+      updateLastOnDisplay();
       lcd.setCursor(5, 1);
       lcd.write(5);
       lcd.print(getOnPercentage());
@@ -228,15 +229,15 @@ void doUI() {
           break;
         case Seconds:
           lcd.print(lastOnValue);
-          lcd.print("s")
+          lcd.print("s  ");
           break;
         case Minutes:
           lcd.print(lastOnValue);
-          lcd.print("m");
+          lcd.print("m  ");
           break;
         case Hours:
           lcd.print(lastOnValue);
-          lcd.print("h");
+          lcd.print("h  ");
           break;
         case MaxValue:
           lcd.print("+++");
