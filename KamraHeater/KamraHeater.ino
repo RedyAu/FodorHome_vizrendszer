@@ -14,12 +14,13 @@
    1.1: Sleep functionality
    1.2: Display heater on percentage during last hour, new icons on screen
    1.3: Display how long ago was the heater last on
+   1.4: Fix time display bug, add days to display
 */
 
 #define RelayON LOW
 #define RelayOFF HIGH
 
-const String softwareVersion = "v1.3";
+const String softwareVersion = "v1.4";
 
 #include <EEPROM.h>
 
@@ -51,13 +52,15 @@ unsigned long lastOnCheck;
 const unsigned long onCheckFreq = 60000;
 
 unsigned long lastOn = 0;
+bool millisOverflow = false;
 int lastOnUnit = 0;
 int lastOnValue = 0;
 #define NoValue 0
 #define Seconds 1
 #define Minutes 2
 #define Hours 3
-#define MaxValue 4
+#define Days 4
+#define MaxValue 5
 
 unsigned long lastDhtRead = 0;
 const int dhtReadFreq = 3000;
@@ -161,12 +164,11 @@ void loop() {
   doUI();
 }
 
-static int tempTreshold = 5; //In C, X10 (so 5 = 0.5C)
+static int tempTreshold = 5; //In C, *10 (so 15 = 1.5C)
 
 void doHeat() {
   if (nowTemp < setTemp) {
     heat = true;
-    lastOn = millis();
   }
   else if (nowTemp > setTemp + tempTreshold) heat = false;
 }
@@ -175,6 +177,9 @@ void doOutput() {
   if (heat) {
     digitalWrite(oLED, HIGH);
     digitalWrite(oRelay, RelayON);
+    
+    lastOn = millis();
+    millisOverflow = false;
   }
   else {
     digitalWrite(oLED, LOW);
@@ -216,7 +221,7 @@ void doUI() {
       lcd.write(2);
       lcd.print(printHum, 0);
       lcd.print("%");
-      
+
       updateLastOnDisplay();
       lcd.setCursor(5, 1);
       lcd.write(5);
@@ -239,8 +244,12 @@ void doUI() {
           lcd.print(lastOnValue);
           lcd.print("h  ");
           break;
+        case Days:
+          lcd.print(lastOnValue);
+          lcd.print("d  ");
+          break;
         case MaxValue:
-          lcd.print("+++");
+          lcd.print("50+d ");
           break;
       }
       break;
@@ -278,7 +287,7 @@ void doUI() {
       lcd.print(error);
 
       lcd.setCursor(0, 1);
-      lcd.print("     RENDBEN: <>");
+      lcd.print("          OK: <>");
       break;
 
   }

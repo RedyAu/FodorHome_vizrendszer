@@ -10,7 +10,6 @@ bool lastHour[60];
 int lastHourIndex = 0;
 
 void updateOnPercentage() {  
-  Serial.println("Update");
   lastHour[lastHourIndex] = !digitalRead(oRelay);
   lastHourIndex++;
   if (lastHourIndex >= 60) {
@@ -44,19 +43,31 @@ int getOnPercentage() {
  */
 
 void updateLastOnDisplay() {
+  if (millisOverflow) return;
+  
   unsigned long difference = millis() - lastOn;
-  if ((lastOn == 0) || (difference < 5000)) {
+  
+  if ((lastOn == 0) || (difference < 1000)) {
     lastOnUnit = NoValue;
-  } else if (difference < 60000) {
+  } 
+  else if (difference < 60000) {
     lastOnUnit = Seconds;
     lastOnValue = difference / 1000;
-  } else if (difference < 3600000) {
+  } 
+  else if (difference < 3600000) {
     lastOnUnit = Minutes;
     lastOnValue = difference / 60000;
-  } else if (difference < 3600000000) { //Less than 1000 hours (which is the display limit)
+  } 
+  else if (difference < 604800000) { //Only switch to showing days after a week
     lastOnUnit = Hours;
     lastOnValue = difference / 3600000;
-  } else {
+  } 
+  else if (difference < 4294966000) {
+    lastOnUnit = Days;
+    lastOnValue = difference / 86400000;
+  } 
+  else {
     lastOnUnit = MaxValue;
+    millisOverflow = true;
   }
 }
