@@ -24,8 +24,8 @@ void serialRead() {
 }
 
 void parseCommand(String rawCommand) {
-  String command;
-  int argument;
+  String command = "";
+  int argument = "";
 
   command = rawCommand.substring(0, rawCommand.indexOf(" "));
   argument = rawCommand.substring(rawCommand.indexOf(" ") + 1).toInt();
@@ -127,7 +127,9 @@ void parseCommand(String rawCommand) {
 
     else if (command == "allValves") {
       if (argument) {
+        Serial.print("Setting currentJob to allValves");
         currentJob = {NoStopNext, AllValves, AllValves};
+        jobDo();
       } else {
         currentJob = {StopNext};
       }

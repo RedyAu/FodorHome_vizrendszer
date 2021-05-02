@@ -80,6 +80,16 @@ BLYNK_WRITE(V21) { //Weight
 /*Watering Zone Properties*/
 //-------------------------------------
 
+BLYNK_WRITE(V49) {
+  if (param.asInt()) {
+    currentJob = {NoStopNext, AllValves, AllValves};
+    terminal.print("Opening all valves");
+  } else {
+    currentJob = {StopNext};
+    terminal.print("Closing all valves");
+  }
+}
+
 BLYNK_WRITE(V50) { //TapFlowButton
   tapFlow = param.asInt();
 }

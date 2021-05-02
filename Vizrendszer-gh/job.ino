@@ -54,6 +54,7 @@ void job() { /////////////////////////////////////////////////////////////////
   //Water
   if (water()) return;
 
+  if (currentJob.from == AllValves) return;
   //If end of tree reached, stop and reset.
   currentJob = waterJob{StopNext};
 }
