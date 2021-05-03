@@ -34,8 +34,9 @@
    1.7 - Actually fix watering scheduling, even cleaner watering terminal output
    1.8 - All valves open serial command
    1.8.1 - Water to blue from sprinkler
+   1.8.2 - Sprinkler repaired :)
 */
-#define softwareVersion "1.8.1"
+#define softwareVersion "1.8.2"
 
 // BLYNK
 #define BLYNK_PRINT Serial
@@ -88,7 +89,7 @@ const int toDump = 31;
 const int toGrey = 32;
 const int toPink = 33;
 const int toGreen = 34;
-const int toBlue = 30; // Water blue from tap (bad sprinkler)
+const int toBlue = 35;
 const int toRed = 36;
 const int mainPump = 28;
 
@@ -168,8 +169,8 @@ void updateZones() {
   }
 }
 
-byte fromValves[] = {/*fromWell, fromGarage, fromBuffer, fromWatering*/};
-byte toValves[] = {/*toWatering, toBuffer,*/ toTap, toDump, toPink, toGreen, toBlue, toRed/*, toGrey*/};
+byte fromValves[] = {fromWell, fromGarage, fromBuffer, fromWatering};
+byte toValves[] = {toWatering, toBuffer, toTap, toDump, toPink, toGreen, toBlue, toRed/*, toGrey*/};
 
 byte output[] = {22, 23, 24, 25, 30, 31, 32, 33, 34, 35, 36, 37, 26, 27, 28, 29};
 byte input[] = {39, 41, 44, 45, 46, A8};

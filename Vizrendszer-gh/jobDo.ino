@@ -104,10 +104,10 @@ void jobDo() {
       digitalWrite(toGreen, RelayOn);
       terminal.print("green zone");
       break;
-    /*case toBlue:
+    case toBlue:
       digitalWrite(toBlue, RelayOn);
       terminal.print("blue zone");
-      break;*/
+      break;
     case toRed:
       digitalWrite(toRed, RelayOn);
       terminal.print("red zone");
