@@ -33,8 +33,9 @@
    1.6 - Clean up watering start console output for bugfixing, report time for console outputs. Fixed: Now american style weekdays
    1.7 - Actually fix watering scheduling, even cleaner watering terminal output
    1.8 - All valves open serial command
+   1.8.1 - Water to blue from sprinkler
 */
-#define softwareVersion "1.8"
+#define softwareVersion "1.8.1"
 
 // BLYNK
 #define BLYNK_PRINT Serial
@@ -43,10 +44,6 @@
 #include <SPI.h>
 char auth[] = "fngkJqhTaCdhVm4QD9gle68xb4Fm9856";
 
-#include <WidgetRTC.h>
-WidgetRTC rtc;
-WidgetTerminal terminal(V100);
-
 //Initialize libraries
 
 #include <TimeLib.h>
@@ -54,6 +51,11 @@ WidgetTerminal terminal(V100);
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <EEPROM.h>
+
+
+#include <WidgetRTC.h>
+WidgetRTC rtc;
+WidgetTerminal terminal(V100);
 
 const int oneWireBus = A8; //One sensor connected: Water temperature sensor of Buffer tank
 OneWire oneWire(oneWireBus);
@@ -86,7 +88,7 @@ const int toDump = 31;
 const int toGrey = 32;
 const int toPink = 33;
 const int toGreen = 34;
-const int toBlue = 35;
+const int toBlue = 30; // Water blue from tap (bad sprinkler)
 const int toRed = 36;
 const int mainPump = 28;
 
