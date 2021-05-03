@@ -1,5 +1,3 @@
-#define AllValves 999
-
 void jobStop() {
   terminal.println("\njobDo: Stopping.\n");
 
@@ -71,6 +69,7 @@ void jobDo() {
       break;
     case AllValves:
       digitalWriteGroup(fromValves, LEN(fromValves), RelayOn);
+      terminal.print("all valves");
       break;
     default:
       error(100);
@@ -115,14 +114,18 @@ void jobDo() {
       break;
     case AllValves: //30-36
       digitalWriteGroup(toValves, LEN(toValves), RelayOn);
+      terminal.print("all valves");
       break;
     /*case toGrey://To Grey
       break;*/
     default:
       error(101);
   }
-
-  digitalWrite(mainPump, RelayOn);
+  if (currentJob.from != AllValves) {
+    digitalWrite(mainPump, RelayOn);
+  } else {
+    digitalWrite(mainPump, RelayOff);
+  }
   terminal.println();
   blynkJobUpdate();
 }
