@@ -19,7 +19,7 @@ void blynkSync() {
   //Update watering stuff
   Blynk.virtualWrite(V59, skipNextWatering);
   Blynk.virtualWrite(V56, watering);
-  Blynk.virtualWrite(V61, doneToday ? 255 : 0);
+  Blynk.virtualWrite(V61, doneToday ? 255 : 0);  
 
   if (watering) {
     long double wateringProgressRatio = (long double)currentSession.elapsedTime / (long double)currentSession.duration;
@@ -28,14 +28,9 @@ void blynkSync() {
     Blynk.virtualWrite(V62, (int)((currentSession.duration / 1000) / 60));
   }
 
-  static bool heartbeat;
-  if (!heartbeat) {
-    Blynk.virtualWrite(V104, 255);
-    heartbeat = true;
-  } else {
-    Blynk.virtualWrite(V104, 0);
-    heartbeat = false;
-  }
+  static unsigned char heartbeat = 0;
+  heartbeat ^= 1;
+  Blynk.virtualWrite(V104, heartbeat ? 255 : 0);
 
   terminal.flush();
 }
