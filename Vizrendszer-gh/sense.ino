@@ -105,17 +105,9 @@ int levelOf(int container) {
   //return 0 if both sensors 0
   //return 1 if bottom sensor 1
   //return 2 if both sensors 1
-  bool upper = false;
-  bool lower = false;
-
-  if (container == 1) {//If we should get the level of watering tank
-    lower = waterLower; //If we have water on the lower sensor, store it
-    upper = waterUpper;
-  }
-  else { //Otherwise get data from buffer tank
-    lower = bufferLower; //If we have water on the lower sensor, store it
-    upper = bufferUpper;
-  }
+  
+  bool upper = container ? waterUpper : bufferUpper;
+  bool lower = container ? waterLower : bufferLower;
 
   if (!lower && !upper) return 0;
   if (lower && !upper) return 1;
@@ -125,7 +117,7 @@ int levelOf(int container) {
     if (container) error(1300);
     else {
       return 0;
-      //error(true,1310);
+      error(1310);
     }
   }
   return 0;

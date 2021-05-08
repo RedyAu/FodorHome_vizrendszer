@@ -1,31 +1,45 @@
 void blynkSync() {
-  //terminal.println("Sync...");
+  unsigned char _temp;
 
   //Update water levels
-  Blynk.virtualWrite(V40, levelOf(Buffer));
-  Blynk.virtualWrite(V41, levelOf(Watering));
+  static unsigned char _v40 = 0;
+  if ((_temp = _v40) != (_v40 = levelOf(Buffer))) Blynk.virtualWrite(V40, _v40); //changes - store | own var
+  static unsigned char _v41 = 0;
+  if ((_temp = _v41) != (_v41 = levelOf(Watering))) Blynk.virtualWrite(V41, _v41); //changes - store | own var
 
   //Update buffer temperature
-  Blynk.virtualWrite(V43, bufferTemp);
+
+  static float _bufferTemp;
+  if (_bufferTemp != bufferTemp) {
+    Blynk.virtualWrite(V43, bufferTemp); //changes - store | own var
+    _bufferTemp = bufferTemp;
+  }
 
   //Update state of functions and buttons
-  Blynk.virtualWrite(V50, tapFlow);
-  Blynk.virtualWrite(V51, dumping);
-  Blynk.virtualWrite(V53, cooling);
-  Blynk.virtualWrite(V55, fullEmpty);
-  Blynk.virtualWrite(V56, watering);
-  Blynk.virtualWrite(V64, isCoolingWatering);
+  static unsigned char _v50 = 0;
+  if ((_temp = _v50) != (_v50 = tapFlow)) Blynk.virtualWrite(V50, tapFlow); //changes - store | bit0
+  static unsigned char _v51 = 0;
+  if ((_temp = _v51) != (_v51 = dumping)) Blynk.virtualWrite(V51, dumping); //changes - store | bit1
+  static unsigned char _v53 = 0;
+  if ((_temp = _v53) != (_v53 = cooling)) Blynk.virtualWrite(V53, cooling); //changes - store | bit2
+  static unsigned char _v55 = 0;
+  if ((_temp = _v55) != (_v55 = fullEmpty)) Blynk.virtualWrite(V55, fullEmpty); //changes - store | 3
+  static unsigned char _v56 = 0;
+  if ((_temp = _v56) != (_v56 = watering)) Blynk.virtualWrite(V56, watering); //changes - store | 4
+  static unsigned char _v64 = 0;
+  if ((_temp = _v64) != (_v64 = isCoolingWatering)) Blynk.virtualWrite(V64, isCoolingWatering); //does not change probably
 
   //Update watering stuff
-  Blynk.virtualWrite(V59, skipNextWatering);
-  Blynk.virtualWrite(V56, watering);
-  Blynk.virtualWrite(V61, doneToday ? 255 : 0);  
+  static unsigned char _v59 = 0;
+  if ((_temp = _v59) != (_v59 = skipNextWatering))  Blynk.virtualWrite(V59, skipNextWatering); //changes - store | 5
+  static unsigned char _v61 = 0;
+  if ((_temp = _v61) != (_v61 = doneToday)) Blynk.virtualWrite(V61, doneToday ? 255 : 0); //changes | 7
 
   if (watering) {
     long double wateringProgressRatio = (long double)currentSession.elapsedTime / (long double)currentSession.duration;
     long double wateringProgress = (long double)1024 * wateringProgressRatio;
-    Blynk.virtualWrite(V60, (int)wateringProgress);
-    Blynk.virtualWrite(V62, (int)((currentSession.duration / 1000) / 60));
+    Blynk.virtualWrite(V60, (int)wateringProgress); //no store
+    Blynk.virtualWrite(V62, (int)((currentSession.duration / 1000) / 60)); //no store
   }
 
   static unsigned char heartbeat = 0;
