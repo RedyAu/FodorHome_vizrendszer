@@ -1,3 +1,4 @@
+
 /* Written by Benedek Fodor in 2019-2020
    Versions:
    0.0 - Write out in plain text what the code should do
@@ -35,9 +36,9 @@
    1.8 - All valves open serial command
    1.8.1 - Water to blue from sprinkler
    1.8.2 - Sprinkler repaired :)
-   1.9-pre [Not tested yet] - Only send values to Blynk when different.
+   1.9 - Only send values to Blynk when different.
 */
-#define softwareVersion "1.9-pre"
+#define softwareVersion "1.9"
 
 // BLYNK
 #define BLYNK_PRINT Serial
@@ -64,7 +65,7 @@ OneWire oneWire(oneWireBus);
 DallasTemperature waterTemp(&oneWire);
 
 //Constants
-const bool debug = true;
+const bool debug = false;
 
 const int blynkSyncRate = 1000; //Sync values every second
 const unsigned long bufferEmptyingDuration = 150000; //When temperature is exceeded, empty buffer tank this long before filling it again (milliseconds)(roughly 1/3rd of tank)
