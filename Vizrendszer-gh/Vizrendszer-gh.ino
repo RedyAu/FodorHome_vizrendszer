@@ -47,7 +47,7 @@
 #include <BlynkSimpleEthernet.h>
 #include <Ethernet.h>
 #include <SPI.h>
-#include "auth-token.h"
+#include "authtoken.h"
 char auth[] = AUTH_TOKEN;
 
 //Initialize libraries
