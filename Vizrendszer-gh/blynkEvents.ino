@@ -49,6 +49,29 @@ void blynkSync() {
   terminal.flush();
 }
 
+void pushWateringTimes() {
+  updateZones();
+  int totalTime = setWateringDuration / (unsigned long)1000;
+  int sumWeights = 0;
+  for (int i; i < LEN(zones); i++) {
+    if (zones[i].isActive) {
+      sumWeights += zones[i].weight;
+    }
+  }
+  char tempString[25] = {0};
+
+  sprintf(tempString, "Pink: %dp", (pinkWeight / sumWeights) * totalTime); //Pink
+  Blynk.setProperty(V11, "offLabel", tempString); 
+  sprintf(tempString, "Zöld: %dp", (greenWeight / sumWeights) * totalTime); //Green
+  Blynk.setProperty(V14, "offLabel", tempString);
+  sprintf(tempString, "Kék: %dp", (blueWeight / sumWeights) * totalTime); //Blue
+  Blynk.setProperty(V17, "offLabel", tempString);
+  sprintf(tempString, "Piros: %dp", (redWeight / sumWeights) * totalTime); //Red
+  Blynk.setProperty(V20, "offLabel", tempString);
+  //sprintf(tempString, "Grey: %dp", (pinkWeight / sumWeights) * totalTime); //Future: Grey
+  //Blynk.setProperty(V11, "offLabel", tempString);
+}
+
 BLYNK_CONNECTED() {
   // Synchronize time on connection
   rtc.begin();
@@ -61,30 +84,38 @@ BLYNK_CONNECTED() {
 //Pink
 BLYNK_WRITE(V11) { //Active
   isPinkActive = param.asInt();
+  pushWateringTimes();
 }
 BLYNK_WRITE(V12) { //Weight
   pinkWeight = param.asInt();
+  pushWateringTimes();
 }
 //Green
 BLYNK_WRITE(V14) { //Active
   isGreenActive = param.asInt();
+  pushWateringTimes();
 }
 BLYNK_WRITE(V15) { //Weight
   greenWeight = param.asInt();
+  pushWateringTimes();
 }
 //Blue
 BLYNK_WRITE(V17) { //Active
   isBlueActive = param.asInt();
+  pushWateringTimes();
 }
 BLYNK_WRITE(V18) { //Weight
   blueWeight = param.asInt();
+  pushWateringTimes();
 }
 //Red
 BLYNK_WRITE(V20) { //Active
   isRedActive = param.asInt();
+  pushWateringTimes();
 }
 BLYNK_WRITE(V21) { //Weight
   redWeight = param.asInt();
+  pushWateringTimes();
 }
 /*Watering Zone Properties*/
 //-------------------------------------
@@ -139,6 +170,7 @@ BLYNK_WRITE(V56) { //watering start button
 }
 BLYNK_WRITE(V57) { //watering duration (when next started)
   setWateringDuration = (unsigned long)((unsigned long)param.asInt() * 60) * 1000;
+  pushWateringTimes();
 }
 
 bool isMonday, isTuesday, isWednesday, isThursday, isFriday, isSaturday, isSunday;
