@@ -12,7 +12,6 @@
 const unsigned long recalculateInactiveFor = 10 * 1000; //10s
 const unsigned long killInactiveFor = 43200000; //43'200'000ms -> 12h
 
-int sumWeights;
 bool canMoveStart = false;
 
 void beginWatering(unsigned long duration, bool purpose) {  //calculate one unit time from duration and set weights - then continue
@@ -32,7 +31,7 @@ void beginWatering(unsigned long duration, bool purpose) {  //calculate one unit
 
   previousSession = currentSession;
   currentSession.startTime = millis();
-
+/*
   sumWeights = 0;
 
   for (int i; i < LEN(zones); i++) {
@@ -40,7 +39,9 @@ void beginWatering(unsigned long duration, bool purpose) {  //calculate one unit
       sumWeights += zones[i].weight;
     }
   }
-
+*/
+  Serial.print("waterStart sumWeights: "); //TODO removeme
+  Serial.println(sumWeights);
   watering = true;
   wateringFinished = false;
   canMoveStart = currentSession.purpose == Cooling;

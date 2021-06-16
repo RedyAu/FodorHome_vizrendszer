@@ -50,26 +50,31 @@ void blynkSync() {
 }
 
 void pushWateringTimes() {
+  Serial.println("push");
+  static unsigned long lastPushed = 0;
+  if (!syncComplete) return;
+  Serial.println("1");
+  
   updateZones();
+  Serial.println("2");
   int totalTime = setWateringDuration / (unsigned long)1000;
-  int sumWeights = 0;
-  for (int i; i < LEN(zones); i++) {
-    if (zones[i].isActive) {
-      sumWeights += zones[i].weight;
-    }
-  }
-  char tempString[25] = {0};
+  
+  Serial.println(setWateringDuration);
+  char tempString[50] = {0};
 
-  sprintf(tempString, "Pink: %dp", (pinkWeight / sumWeights) * totalTime); //Pink
-  Blynk.setProperty(V11, "offLabel", tempString); 
-  sprintf(tempString, "Zöld: %dp", (greenWeight / sumWeights) * totalTime); //Green
+  /*int whytho = (((float)pinkWeight / (float)sumWeights) * (float)totalTime) / 60;
+  Serial.println(whytho);*/
+  sprintf(tempString, "Pink: %dp", (int)(((float)pinkWeight / (float)sumWeights) * (float)totalTime) / 60); //Pink
+  Blynk.setProperty(V11, "offLabel", tempString);
+  sprintf(tempString, "Zöld: %dp", (int)(((float)greenWeight / (float)sumWeights) * (float)totalTime) / 60); //Green
   Blynk.setProperty(V14, "offLabel", tempString);
-  sprintf(tempString, "Kék: %dp", (blueWeight / sumWeights) * totalTime); //Blue
+  sprintf(tempString, "Kék: %dp", (int)(((float)blueWeight / (float)sumWeights) * (float)totalTime) / 60); //Blue
   Blynk.setProperty(V17, "offLabel", tempString);
-  sprintf(tempString, "Piros: %dp", (redWeight / sumWeights) * totalTime); //Red
+  sprintf(tempString, "Piros: %dp", (int)(((float)redWeight / (float)sumWeights) * (float)totalTime) / 60); //Red
   Blynk.setProperty(V20, "offLabel", tempString);
-  //sprintf(tempString, "Grey: %dp", (pinkWeight / sumWeights) * totalTime); //Future: Grey
-  //Blynk.setProperty(V11, "offLabel", tempString);
+  //sprintf(tempString, "Szürke: %dp", (int)(((float)greyWeight / (float)sumWeights) * (float)totalTime) / 60); //Grey future
+  //Blynk.setProperty(V11, "offLabel", tempString);*/
+  Serial.println("4");
 }
 
 BLYNK_CONNECTED() {
@@ -77,6 +82,8 @@ BLYNK_CONNECTED() {
   rtc.begin();
   Blynk.syncAll();
   watering = false;
+  syncComplete = true;
+  pushWateringTimes();
 }
 
 //-------------------------------------

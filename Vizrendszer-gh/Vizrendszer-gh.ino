@@ -151,7 +151,7 @@ struct wateringZone {
   int weight;
 };
 wateringZone zones[4];
-
+int sumWeights;
 bool isPinkActive, isGreenActive, isBlueActive, isRedActive, isCoolingWatering;
 int pinkWeight, greenWeight, blueWeight, redWeight;
 void updateZones() {
@@ -163,6 +163,12 @@ void updateZones() {
   };
   for (int i = 0; i < 4; i++) {
     zones[i] = newZones[i];
+  }
+  sumWeights = 0;
+  for (int i; i < LEN(zones); i++) {
+    if (zones[i].isActive) {
+      sumWeights += zones[i].weight;
+    }
   }
 }
 
@@ -176,7 +182,7 @@ byte input_pullup[] = {47};
 
 //Globals
 
-bool cooling, tapFlow, dumping, fullEmpty, watering, wateringFinished = true, skipNextWatering, isPeriodicWateringEnabled, doneToday, begun = true, initDone;//////////////////////
+bool cooling, tapFlow, dumping, fullEmpty, watering, syncComplete = false, wateringFinished = true, skipNextWatering, isPeriodicWateringEnabled, doneToday, begun = true, initDone;//////////////////////
 unsigned long dailyWateringAtSeconds, setWateringDuration, secondsToday;
 
 float bufferTreshold;
