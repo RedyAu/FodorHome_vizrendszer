@@ -32,7 +32,7 @@ bool jobRead(int from, int to) {
 }
 
 bool isBufferEmptying() {
-  return jobRead(fromBuffer, toWatering);
+  return (jobRead(fromBuffer, toWatering) || jobRead(fromBuffer, toDump));
 }
 bool isWateringEmptying() {
   return jobRead(fromWatering, 0);

@@ -17,23 +17,23 @@ void blynkSync() {
 
   //Update state of functions and buttons
   static unsigned char _v50 = 0;
-  if ((_temp = _v50) != (_v50 = tapFlow)) Blynk.virtualWrite(V50, tapFlow); //changes - store | bit0
+  if ((_temp = _v50) != (_v50 = tapFlow)) Blynk.virtualWrite(V50, tapFlow);
   static unsigned char _v51 = 0;
-  if ((_temp = _v51) != (_v51 = dumping)) Blynk.virtualWrite(V51, dumping); //changes - store | bit1
+  if ((_temp = _v51) != (_v51 = dumping)) Blynk.virtualWrite(V51, dumping);
   static unsigned char _v53 = 0;
-  if ((_temp = _v53) != (_v53 = cooling)) Blynk.virtualWrite(V53, cooling); //changes - store | bit2
+  if ((_temp = _v53) != (_v53 = cooling)) Blynk.virtualWrite(V53, cooling);
   static unsigned char _v55 = 0;
-  if ((_temp = _v55) != (_v55 = fullEmpty)) Blynk.virtualWrite(V55, fullEmpty); //changes - store | 3
+  if ((_temp = _v55) != (_v55 = fullEmpty)) Blynk.virtualWrite(V55, fullEmpty);
   static unsigned char _v56 = 0;
-  if ((_temp = _v56) != (_v56 = watering)) Blynk.virtualWrite(V56, watering); //changes - store | 4
+  if ((_temp = _v56) != (_v56 = watering)) Blynk.virtualWrite(V56, watering);
   static unsigned char _v64 = 0;
-  if ((_temp = _v64) != (_v64 = isCoolingWatering)) Blynk.virtualWrite(V64, isCoolingWatering); //does not change probably
+  if ((_temp = _v64) != (_v64 = isCoolingWatering)) Blynk.virtualWrite(V64, isCoolingWatering);
 
   //Update watering stuff
   static unsigned char _v59 = 0;
-  if ((_temp = _v59) != (_v59 = skipNextWatering))  Blynk.virtualWrite(V59, skipNextWatering); //changes - store | 5
+  if ((_temp = _v59) != (_v59 = skipNextWatering))  Blynk.virtualWrite(V59, skipNextWatering);
   static unsigned char _v61 = 0;
-  if ((_temp = _v61) != (_v61 = doneToday)) Blynk.virtualWrite(V61, doneToday ? 255 : 0); //changes | 7
+  if ((_temp = _v61) != (_v61 = doneToday)) Blynk.virtualWrite(V61, doneToday ? 255 : 0);
 
   if (watering) {
     long double wateringProgressRatio = (long double)currentSession.elapsedTime / (long double)currentSession.duration;
@@ -92,10 +92,8 @@ BLYNK_WRITE(V21) { //Weight
 BLYNK_WRITE(V49) {
   if (param.asInt()) {
     currentJob = {NoStopNext, AllValves, AllValves};
-    terminal.print("Opening all valves");
   } else {
     currentJob = {StopNext};
-    terminal.print("Closing all valves");
   }
 }
 
@@ -134,6 +132,7 @@ BLYNK_WRITE(V56) { //watering start button
     } else beginWatering(setWateringDuration, Normal);
   } else {
     watering = false;
+    currentSession = emptySession;
     wateringFinished = true;
     currentJob = waterJob {StopNext};
   }

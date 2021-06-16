@@ -37,8 +37,9 @@
    1.8.1 - Water to blue from sprinkler
    1.8.2 - Sprinkler repaired :)
    1.9 - Only send values to Blynk when different.
+   1.10 - Rewired garage. Fixed cooling bugs.
 */
-#define softwareVersion "1.9"
+#define softwareVersion "1.10pre5"
 
 // BLYNK
 #define BLYNK_PRINT Serial
@@ -60,12 +61,12 @@ char auth[] = "fngkJqhTaCdhVm4QD9gle68xb4Fm9856";
 WidgetRTC rtc;
 WidgetTerminal terminal(V100);
 
-const int oneWireBus = A8; //One sensor connected: Water temperature sensor of Buffer tank
+const int oneWireBus = A0; //One sensor connected: Water temperature sensor of Buffer tank
 OneWire oneWire(oneWireBus);
 DallasTemperature waterTemp(&oneWire);
 
 //Constants
-const bool debug = false;
+const bool debug = true;
 
 const int blynkSyncRate = 1000; //Sync values every second
 const unsigned long bufferEmptyingDuration = 150000; //When temperature is exceeded, empty buffer tank this long before filling it again (milliseconds)(roughly 1/3rd of tank)
@@ -151,31 +152,23 @@ wateringZone zones[4];
 bool isPinkActive, isGreenActive, isBlueActive, isRedActive, isCoolingWatering;
 int pinkWeight, greenWeight, blueWeight, redWeight;
 void updateZones() {
-  if (!isCoolingWatering && (currentSession.purpose == Cooling)) {
-    wateringZone newZones[] = {
-      { Active, toDump, 1 }
-    };
-    for (int i = 0; i < 4; i++) {
-      zones[i] = newZones[i];
-    }
-  } else {
-    wateringZone newZones[] = {
-      { isPinkActive, toPink, pinkWeight },
-      { isGreenActive, toGreen, greenWeight },
-      { isBlueActive, toBlue, blueWeight },
-      { isRedActive, toRed, redWeight }
-    };
-    for (int i = 0; i < 4; i++) {
-      zones[i] = newZones[i];
-    }
+  wateringZone newZones[] = {
+    { isPinkActive, toPink, pinkWeight },
+    { isGreenActive, toGreen, greenWeight },
+    { isBlueActive, toBlue, blueWeight },
+    { isRedActive, toRed, redWeight }
+  };
+  for (int i = 0; i < 4; i++) {
+    zones[i] = newZones[i];
   }
 }
+
 
 byte fromValves[] = {fromWell, fromGarage, fromBuffer, fromWatering};
 byte toValves[] = {toWatering, toBuffer, toTap, toDump, toPink, toGreen, toBlue, toRed/*, toGrey*/};
 
 byte output[] = {22, 23, 24, 25, 30, 31, 32, 33, 34, 35, 36, 37, 26, 27, 28, 29};
-byte input[] = {39, 41, 44, 45, 46, A8};
+byte input[] = {39, 41, 44, 45, 46, A8, A0};
 byte input_pullup[] = {47};
 
 //Globals

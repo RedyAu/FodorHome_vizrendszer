@@ -33,17 +33,17 @@ void sense() { //Read data from temperature and humidity sensors and write it to
     //udvarHum = udvarDHT.readHumidity();
     //if (udvarTemp == nan || udvarHum == nan) error(1410); //read warning
 
-    /*    switch (int(bufferTemp * 10)) {
-          case -1270:
-            //sensor disconnected todo
-            error(1420);
-            break;
-          case 850:
-            //sensor connected but reading failed
-            error(1425);
-            bufferTemp = -127.0;
-            break;
-        }*/
+    switch (int(bufferTemp * 10)) {
+      case -1270:
+        //sensor disconnected todo
+        error(1420);
+        break;
+      case 850:
+        //sensor connected but reading failed
+        error(1425);
+        bufferTemp = -127.0;
+        break;
+    }
   }
 
   bool bufferLowerNow = digitalRead(bufferLvlLower);
@@ -105,7 +105,7 @@ int levelOf(int container) {
   //return 0 if both sensors 0
   //return 1 if bottom sensor 1
   //return 2 if both sensors 1
-  
+
   bool upper = container ? waterUpper : bufferUpper;
   bool lower = container ? waterLower : bufferLower;
 
