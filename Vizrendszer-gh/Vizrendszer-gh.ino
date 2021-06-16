@@ -1,5 +1,5 @@
 
-/* Written by Benedek Fodor in 2019-2020
+/* Written by RedyAu in 2019-2021
    Versions:
    0.0 - Write out in plain text what the code should do
    0.1 - Main functions layed out to tabs
@@ -37,16 +37,18 @@
    1.8.1 - Water to blue from sprinkler
    1.8.2 - Sprinkler repaired :)
    1.9 - Only send values to Blynk when different.
-   1.10 - Rewired garage. Fixed cooling bugs.
+   1.10 - Rewired garage. Fixed cooling bugs. Implemented watering zones time calculator. Auth token finally hidden (and changed, don't get ideas.)
 */
-#define softwareVersion "1.10pre5"
+
+#define softwareVersion "1.10pre6"
 
 // BLYNK
 #define BLYNK_PRINT Serial
 #include <BlynkSimpleEthernet.h>
 #include <Ethernet.h>
 #include <SPI.h>
-char auth[] = "fngkJqhTaCdhVm4QD9gle68xb4Fm9856";
+#include "auth-token.h"
+char auth[] = AUTH_TOKEN;
 
 //Initialize libraries
 
@@ -59,6 +61,7 @@ char auth[] = "fngkJqhTaCdhVm4QD9gle68xb4Fm9856";
 
 #include <WidgetRTC.h>
 WidgetRTC rtc;
+
 WidgetTerminal terminal(V100);
 
 const int oneWireBus = A0; //One sensor connected: Water temperature sensor of Buffer tank
