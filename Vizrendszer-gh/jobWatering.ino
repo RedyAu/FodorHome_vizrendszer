@@ -43,8 +43,7 @@ void beginWatering(unsigned long duration, bool purpose) {  //calculate one unit
 
   watering = true;
   wateringFinished = false;
-  canMoveStart = false;
-  water();
+  canMoveStart = currentSession.purpose == Cooling;
 }
 
 bool water() {
@@ -53,22 +52,20 @@ bool water() {
   //start current section based on startTime (rollover!! difference)
   //if finished reached, running false
   if (wateringFinished || !watering) return Continue;
+  if (currentSession.purpose == Cooling && levelOf(Watering) == 0) {
+    if (!cooling) currentSession.purpose = Normal; //If cooling is turned off, finish watering session.
+    //If reason for watering was to empty watering tank, pause watering until full again.
+    currentJob = waterJob{StopNext};
+    return Continue;
+  }
 
   unsigned long deadSince = millis() - currentSession.lastAlive;
   if (deadSince > recalculateInactiveFor) {
-    if (deadSince > killInactiveFor) {
-      currentSession = emptySession;
-      wateringFinished = true;
-      watering = false;
-      canMoveStart = false;
-      currentJob = {StopNext};
-      terminal.println("Watering: ABORTING - Current session didn't update for too long, deleting session and cancelling.");
-      return Continue;
-    } else if (canMoveStart) {
+    if (canMoveStart) {
       //recalculate start so that after the break in watering, we continue where we left off.
       //take difference between start and lastAlive.
       //put start that amount of time before now.
-      terminal.println("Watering: SHIFTING - Current session did not update for a bit, compensating for time past without watering.");
+      terminal.println("Watering: SHIFTING - Current session did not update for a bit, compensating for time spent without watering.");
       currentSession.startTime = millis() - (currentSession.lastAlive - currentSession.startTime);
     }
   }
@@ -82,7 +79,7 @@ bool water() {
   long double ratio = (long double)currentSession.elapsedTime / (long double)currentSession.duration;
   long double tempUnit = (long double)sumWeights * ratio;
   currentSession.currentUnit = (int)tempUnit;
-  if (currentSession.currentUnit > sumWeights) {
+  if (currentSession.currentUnit >= sumWeights) {
     currentSession = emptySession;
     wateringFinished = true;
     watering = false;
