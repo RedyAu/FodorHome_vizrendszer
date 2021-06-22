@@ -38,9 +38,10 @@
    1.8.2 - Sprinkler repaired :)
    1.9 - Only send values to Blynk when different.
    1.10 - Rewired garage. Fixed cooling bugs. Implemented watering zones time calculator. Auth token finally hidden (and changed, don't get ideas.)
+   1.10.1 - Remove rolling average on buffer temperature sensor
 */
 
-#define softwareVersion "1.10pre6"
+#define softwareVersion "1.10.1pre"
 
 // BLYNK
 #define BLYNK_PRINT Serial
