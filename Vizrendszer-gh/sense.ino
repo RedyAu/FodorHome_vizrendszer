@@ -8,7 +8,7 @@ void sense() { //Read data from temperature and humidity sensors and write it to
 
     static bool doTempReading;
     if (doTempReading) {
-      bufferTemp = (int)(waterTemp.getTempCByIndex(0) * 10);
+      bufferTemp = waterTemp.getTempCByIndex(0);
       /*float thisReading = waterTemp.getTempCByIndex(0);
       static float bufferTempReadings[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
       static int bufferTempReadingIndex;
