@@ -39,9 +39,10 @@
    1.9 - Only send values to Blynk when different.
    1.10 - Rewired garage. Fixed cooling bugs. Implemented watering zones time calculator. Auth token finally hidden (and changed, don't get ideas.)
    1.10.1 - Remove rolling average on buffer temperature sensor
+   1.10.2 - Add "completed watering minutes today" display in Blynk
 */
 
-#define softwareVersion "1.10.1pre"
+#define softwareVersion "1.10.2pre"
 
 // BLYNK
 #define BLYNK_PRINT Serial
@@ -185,6 +186,7 @@ byte input_pullup[] = {47};
 
 bool cooling, tapFlow, dumping, fullEmpty, watering, syncComplete = false, wateringFinished = true, skipNextWatering, isPeriodicWateringEnabled, doneToday, begun = true, initDone;//////////////////////
 unsigned long dailyWateringAtSeconds, setWateringDuration, secondsToday;
+unsigned int wateringMinutesCompletedToday = 0;
 
 float bufferTreshold;
 float bufferTemp, wateringTemp;

@@ -86,6 +86,8 @@ bool water() {
     watering = false;
     canMoveStart = false;
     currentJob = {StopNext};
+    terminal.println("\nWatering completed.");
+    wateringMinutesCompletedToday += (int)((currentSession.duration / 1000) / 60);
     return Continue;
   }
 
