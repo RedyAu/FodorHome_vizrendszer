@@ -40,9 +40,10 @@
    1.10 - Rewired garage. Fixed cooling bugs. Implemented watering zones time calculator. Auth token finally hidden (and changed, don't get ideas.)
    1.10.1 - Remove rolling average on buffer temperature sensor
    1.10.2 - Add "completed watering minutes today" display in Blynk
+   1.10.3 - Scheduler bugfix
 */
 
-#define softwareVersion "1.10.2"
+#define softwareVersion "1.10.3pre"
 
 // BLYNK
 #define BLYNK_PRINT Serial

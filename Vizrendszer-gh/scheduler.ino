@@ -7,13 +7,16 @@ void scheduler() {
   //Yeah I really really do love myself some type casting
 
   //Midnight stuff
+  if (hour() == 23 && minute() == 59) doneToday = true;
+  char strBuffer[60] = {0};
   if ((hour() + minute()) == 0) {
-    doneToday = false; //At midnight, reset (Because of this, the set start time can't be 0:00 or else it'll _wreak havoc_ or what.)
-    
-    char strBuffer[60] = {0};
-    sprintf(strBuffer, "\n\n-------\nMinutes watered today (%d.%d.%d): %d\n", year(t), month(t), day(t), wateringMinutesCompletedToday);
-    terminal.print(strBuffer);
+    if (doneToday) {
+      sprintf(strBuffer, "\n\n-------\nMinutes watered today (%d.%d.%d): %d\n", year(t), month(t), day(t), wateringMinutesCompletedToday);
+      terminal.print(strBuffer);
+    }
     wateringMinutesCompletedToday = 0;
+
+    doneToday = false; //At midnight, reset (Because of this, the set start time can't be 0:00 or else it'll _wreak havoc_ or what.)
   }
 
   //Scheduler
@@ -24,7 +27,7 @@ void scheduler() {
     terminal.print(hour(t));
     terminal.print(":");
     terminal.println(minute(t));
-    
+
     if (!isThisWeekdaySelected((int)weekday(t))) {
       terminal.print("But today's weekday, ");
       terminal.print(weekday(t));
@@ -32,18 +35,18 @@ void scheduler() {
       doneToday = true;
       return;
     }
-    
+
     if (!skipNextWatering) {
       terminal.print("Today's weekday, ");
       terminal.print(weekday(t));
       terminal.println(", is selected for watering! Beginning daily session.");
-      
+
       beginWatering(setWateringDuration, Normal);
     } else {
       terminal.print("Today's weekday, ");
       terminal.print(weekday(t));
       terminal.println(", is selected for watering, but this session was set to be skipped. Will water next time.");
-      
+
       skipNextWatering = false;
     }
     doneToday = true;
