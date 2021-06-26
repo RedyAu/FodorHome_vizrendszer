@@ -36,5 +36,11 @@ void scheduler() {
     }
     doneToday = true;
   }
-  if ((hour() + minute()) == 0) doneToday = false; //At midnight, reset (Because of this, the set start time can't be 0:00 or else it'll _wreak havoc_ or what.)
+  if ((hour() + minute()) == 0) {
+    doneToday = false; //At midnight, reset (Because of this, the set start time can't be 0:00 or else it'll _wreak havoc_ or what.)
+    char strBuffer[60] = {0};
+    sprintf(strBuffer, "\n\n-------\nMinutes watered today (%d.%d.%d): %d\n", year(t), month(t), day(t), wateringMinutesCompletedToday);
+    terminal.print(strBuffer);
+    wateringMinutesCompletedToday = 0;
+  }
 }

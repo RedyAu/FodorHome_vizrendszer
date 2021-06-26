@@ -42,6 +42,9 @@ void blynkSync() {
     Blynk.virtualWrite(V62, (int)((currentSession.duration / 1000) / 60)); //no store
   }
 
+  static unsigned int _v65 = 0;
+  if ((_temp = _v65) != (_v65 = wateringMinutesCompletedToday))  Blynk.virtualWrite(V65, wateringMinutesCompletedToday);
+
   static unsigned char heartbeat = 0;
   heartbeat ^= 1;
   Blynk.virtualWrite(V104, heartbeat ? 255 : 0);
@@ -236,7 +239,7 @@ BLYNK_WRITE(V58) { //daily watering start at
 BLYNK_WRITE(V59) { //skip next daily watering session
   skipNextWatering = param.asInt();
 }
-BLYNK_WRITE(V61) { //done today led - hopefully works ( todo )
+BLYNK_WRITE(V61) { //done today led
   doneToday = param.asInt();
 }
 BLYNK_WRITE(V64) {
@@ -244,6 +247,9 @@ BLYNK_WRITE(V64) {
 }
 BLYNK_WRITE(V63) { //isPeriodicWateringEnabled
   isPeriodicWateringEnabled = param.asInt();
+}
+BLYNK_WRITE(V65) {
+  wateringMinutesCompletedToday = param.asInt();
 }
 BLYNK_WRITE(V102) { //error clear
   if (param.asInt()) error(0);
