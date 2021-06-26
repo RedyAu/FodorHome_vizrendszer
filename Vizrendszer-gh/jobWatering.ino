@@ -81,13 +81,17 @@ bool water() {
   long double tempUnit = (long double)sumWeights * ratio;
   currentSession.currentUnit = (int)tempUnit;
   if (currentSession.currentUnit >= sumWeights) {
+    terminal.println("\nWatering completed.");
+    int minutesWatered = (int)((currentSession.duration / 1000) / 60);
+    terminal.println(currentSession.duration);
+    terminal.println(minutesWatered);
+    wateringMinutesCompletedToday += minutesWatered;
+    
     currentSession = emptySession;
     wateringFinished = true;
     watering = false;
     canMoveStart = false;
     currentJob = {StopNext};
-    terminal.println("\nWatering completed.");
-    wateringMinutesCompletedToday += (int)((currentSession.duration / 1000) / 60);
     return Continue;
   }
 

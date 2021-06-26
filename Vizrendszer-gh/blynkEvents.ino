@@ -42,8 +42,8 @@ void blynkSync() {
     Blynk.virtualWrite(V62, (int)((currentSession.duration / 1000) / 60)); //no store
   }
 
-  static unsigned int _v65 = 0;
-  if ((_temp = _v65) != (_v65 = wateringMinutesCompletedToday))  Blynk.virtualWrite(V65, wateringMinutesCompletedToday);
+  static int _v65 = -1;
+  if ((_temp = _v65) != (_v65 = wateringMinutesCompletedToday)) Blynk.virtualWrite(V65, wateringMinutesCompletedToday);
 
   static unsigned char heartbeat = 0;
   heartbeat ^= 1;
