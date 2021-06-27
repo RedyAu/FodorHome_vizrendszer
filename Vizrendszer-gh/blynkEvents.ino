@@ -50,6 +50,7 @@ void blynkSync() {
   Blynk.virtualWrite(V104, heartbeat ? 255 : 0);
   if (Blynk.connected()) {
     digitalWrite(watchdogPin, heartbeat);
+    Serial.print(".");
   }
 
   terminal.flush();

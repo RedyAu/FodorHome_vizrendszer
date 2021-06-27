@@ -16,8 +16,9 @@ const unsigned long resetAfterInactiveForMs = 3000;
 
 //CONSTANTS
 
-const int watchPin = 8;
-const int resetOutputPin = 13;
+const int watchPin = A0;
+const int resetOutputPin = 12;
+const int ledPin = 13;
 
 //PROTOTYPES
 void startupGrace();
@@ -33,6 +34,7 @@ void setup() {
   pinMode(watchPin, INPUT);
   pinMode(resetOutputPin, OUTPUT);
   digitalWrite(resetOutputPin, HIGH);
+  digitalWrite(ledPin, HIGH);
 
   //Ethernet shield needs a reset for some reason on powerup.
   delay(150);
@@ -41,10 +43,12 @@ void setup() {
   startupGrace();
 }
 
+
+unsigned long lastChangedMillis = millis() + resetAfterInactiveForMs;
+unsigned char prevWatch = digitalRead(watchPin);
+
 void loop() {
   //Register a correct watchPin change
-  static unsigned long lastChangedMillis = 0;
-  static unsigned char prevWatch = digitalRead(watchPin);
   unsigned char nowWatch = digitalRead(watchPin);
   if (prevWatch != nowWatch) {
     //Changed state - system is working
@@ -54,21 +58,25 @@ void loop() {
   }
 
   if (millis() - lastChangedMillis > resetAfterInactiveForMs) {
-    Serial.println("Input hasn't changed in specified time!\nResetting...");
+    Serial.println("Input hasn't changed in specified time!");
     sendReset();
     startupGrace();
-    lastChangedMillis = millis();
   } 
 }
 
 void sendReset() {
+  Serial.println("Resetting...");
   digitalWrite(resetOutputPin, LOW);
   delay(500);
   digitalWrite(resetOutputPin, HIGH);
+  lastChangedMillis = millis();
 }
 
 void startupGrace() {
+  digitalWrite(ledPin, LOW);
   Serial.println("Grace period to allow main unit to connect.");
   delay(startupGracePeriodMs);
   Serial.println("Grace period over.");
+  digitalWrite(ledPin, HIGH);
+  lastChangedMillis = millis();
 }
