@@ -108,6 +108,8 @@ const int fromBuffer = 22;
 const int fromWatering = 23;
 const int flowPump = 29;
 
+const int watchdogPin = 53;
+
 #define W5100_CS  10
 #define SDCARD_CS 4
 
@@ -179,7 +181,7 @@ void updateZones() {
 byte fromValves[] = {fromWell, fromGarage, fromBuffer, fromWatering};
 byte toValves[] = {toWatering, toBuffer, toTap, toDump, toPink, toGreen, toBlue, toRed/*, toGrey*/};
 
-byte output[] = {22, 23, 24, 25, 30, 31, 32, 33, 34, 35, 36, 37, 26, 27, 28, 29};
+byte output[] = {22, 23, 24, 25, 30, 31, 32, 33, 34, 35, 36, 37, 26, 27, 28, 29, 53};
 byte input[] = {39, 41, 44, 45, 46, A8, A0};
 byte input_pullup[] = {47};
 

@@ -48,6 +48,9 @@ void blynkSync() {
   static unsigned char heartbeat = 0;
   heartbeat ^= 1;
   Blynk.virtualWrite(V104, heartbeat ? 255 : 0);
+  if (Blynk.connected()) {
+    digitalWrite(watchdogPin, heartbeat);
+  }
 
   terminal.flush();
 }
