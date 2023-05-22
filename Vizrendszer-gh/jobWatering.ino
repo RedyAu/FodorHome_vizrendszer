@@ -9,42 +9,84 @@
   //{toRed, 12}
   };*/
 
-const unsigned long recalculateInactiveFor = 10 * 1000; //10s
-const unsigned long killInactiveFor = 43200000; //43'200'000ms -> 12h
+const unsigned long recalculateInactiveFor = 10;  //10s
 
 bool canMoveStart = false;
+
+bool restoreWateringSession() {
+  return; // TODO implement
+
+  bool wateringFinishedLast = EEPROM.read(13);
+  if (wateringFinishedLast) {
+    terminal.println("No abandoned watering session found.");
+    return false;
+  }
+
+  terminal.println("Watering session was abandoned, restoring...");
+
+  bool purposeLast = EEPROM.read(14);
+  unsigned long startTimeLast;
+  EEPROM.get(15, startTimeLast);
+  unsigned long lastAliveLast;
+  EEPROM.get(19, lastAliveLast);
+  unsigned long durationLast;
+  EEPROM.get(23, durationLast);
+
+  currentSession = emptySession;
+  currentSession.duration = durationLast;
+  currentSession.purpose = purposeLast;
+  currentSession.lastAlive = lastAliveLast;
+  currentSession.startTime = startTimeLast;
+
+  updateZones();  // get new zones values from Blynk
+  // make a copy of zones for use
+  for (int i = 0; i < 4; i++) {
+    inProgressZones[i] = zones[i];
+  }
+
+  watering = true;
+  wateringFinished = false;
+  canMoveStart = currentSession.purpose == Cooling;
+  
+  return true;
+}
 
 void beginWatering(unsigned long duration, bool purpose) {  //calculate one unit time from duration and set weights - then continue
   terminal.print("\n\nWatering: Starting new watering session for ");
   terminal.print(duration);
-  terminal.print(" milliseconds.\nPurpose: ");
+  terminal.print(" seconds.\nPurpose: ");
   terminal.println(purpose ? "Emptying the watering tank.\n" : "Watering for set duration.\n");
-  
+
   currentSession = emptySession;
   currentSession.duration = duration;
   currentSession.purpose = purpose;
-  currentSession.lastAlive = millis();
-  updateZones(); //get new zones values from Blynk
+
+  updateZones();  // get new zones values from Blynk
+  // make a copy of zones for use
+  for (int i = 0; i < 4; i++) {
+    inProgressZones[i] = zones[i];
+  }
+
+  pushWateringTimes();
+
   static wateringSession previousSession;
 
-  if ((previousSession.duration == currentSession.duration) && (previousSession.purpose == currentSession.purpose)) water(); //if same session, do the section switch
+  if ((previousSession.duration == currentSession.duration) && (previousSession.purpose == currentSession.purpose)) water();  //if same session, do the section switch
 
   previousSession = currentSession;
-  currentSession.startTime = millis();
-/*
-  sumWeights = 0;
+  currentSession.startTime = now();
+  currentSession.lastAlive = now();
 
-  for (int i; i < LEN(zones); i++) {
-    if (zones[i].isActive) {
-      sumWeights += zones[i].weight;
-    }
-  }
-*/
-  Serial.print("waterStart sumWeights: "); //TODO removeme
   Serial.println(sumWeights);
   watering = true;
   wateringFinished = false;
   canMoveStart = currentSession.purpose == Cooling;
+
+  EEPROM.update(13, false);
+  EEPROM.update(14, currentSession.purpose);
+  EEPROM.put(15, &currentSession.startTime);
+  EEPROM.put(19, &currentSession.lastAlive);
+  EEPROM.put(23, &currentSession.duration);
 }
 
 bool water() {
@@ -54,27 +96,35 @@ bool water() {
   //if finished reached, running false
   if (wateringFinished || !watering) return Continue;
   if (currentSession.purpose == Cooling && levelOf(Watering) == 0) {
-    if (!cooling) currentSession.purpose = Normal; //If cooling is turned off, finish watering session.
+    if (!cooling) currentSession.purpose = Normal;  //If cooling is turned off, finish watering session.
     //If reason for watering was to empty watering tank, pause watering until full again.
-    currentJob = waterJob{StopNext};
+    currentJob = waterJob{ StopNext };
     return Continue;
   }
 
-  unsigned long deadSince = millis() - currentSession.lastAlive;
+  unsigned long deadSince = now() - currentSession.lastAlive;
   if (deadSince > recalculateInactiveFor) {
     if (canMoveStart) {
       //recalculate start so that after the break in watering, we continue where we left off.
       //take difference between start and lastAlive.
       //put start that amount of time before now.
       terminal.println("Watering: SHIFTING - Current session did not update for a bit, compensating for time spent without watering.");
-      currentSession.startTime = millis() - (currentSession.lastAlive - currentSession.startTime);
+      currentSession.startTime = now() - (currentSession.lastAlive - currentSession.startTime);
+      EEPROM.put(15, &currentSession.startTime);
     }
   }
 
   //Update elapsed time and lastAlive
-  currentSession.lastAlive = millis();
+  currentSession.lastAlive = now();
   canMoveStart = true;
-  currentSession.elapsedTime = millis() - currentSession.startTime;
+
+  static unsigned long lastEepromSave = now();
+  if (now() - lastEepromSave > 10) {
+    EEPROM.put(19, &currentSession.lastAlive);
+    lastEepromSave = now();
+  }
+  
+  currentSession.elapsedTime = now() - currentSession.startTime;
 
   //Get current unit, finish watering if all time elapsed (type casting issues make this look so complicated)
   long double ratio = (long double)currentSession.elapsedTime / (long double)currentSession.duration;
@@ -82,16 +132,17 @@ bool water() {
   currentSession.currentUnit = (int)tempUnit;
   if (currentSession.currentUnit >= sumWeights) {
     terminal.println("\nWatering completed.");
-    int minutesWatered = (int)((currentSession.duration / 1000) / 60);
+    int minutesWatered = (int)(currentSession.duration / 60);
     terminal.println(currentSession.duration);
     terminal.println(minutesWatered);
     wateringMinutesCompletedToday += minutesWatered;
-    
+
     currentSession = emptySession;
     wateringFinished = true;
+    EEPROM.update(13, true);
     watering = false;
     canMoveStart = false;
-    currentJob = {StopNext};
+    currentJob = { StopNext };
     return Continue;
   }
 
@@ -106,12 +157,12 @@ bool water() {
 
   int tempCurrentUnit = currentSession.currentUnit;
 
-  int j = 0;//for loop didn't want to work :/
-  while (j < LEN(zones)) {
-    if (zones[j].isActive) {
-      tempCurrentUnit -= zones[j].weight;
+  int j = 0;
+  while (j < LEN(inProgressZones)) {
+    if (inProgressZones[j].isActive) {
+      tempCurrentUnit -= inProgressZones[j].weight;
       if (tempCurrentUnit < 0) {
-        currentJob = {NoStopNext, ((levelOf(Watering) > 0) ? fromWatering : fromWell), zones[j].id};
+        currentJob = { NoStopNext, ((levelOf(Watering) > 0) ? fromWatering : fromWell), inProgressZones[j].id };
         return End;
         break;
       }

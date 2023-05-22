@@ -20,13 +20,13 @@
    0.12.1 - Faster response when starting water pumping, bugfixes
    0.12.2 - New pin definitions for system with watering built in
    0.13 - Restored IRL sensors, updated pins, cleaned up code. New capacitive water level sensor on waterUpper. Removed determineUpper() along with old waterUpper and groundWater sensors.
-   1.0 - Add watering sections to waterStart, rework it, make allStop part of it.
+   1.0 - Add  sections to waterStart, rework it, make allStop part of it.
          New system for tasks - no stopping of the pump when changing solanoid.
          Whole task management rewritten, more functionality added.
          File structure reworked.
-         Implemented watering controller
+         Implemented  controller
          Implemented Blynk Ethernet control
-   1.1 - Midnight watering bug resolved. New button to disable daily watering. Fixed bug where error deleting stops processes.
+   1.1 - Midnight  bug resolved. New button to disable daily . Fixed bug where error deleting stops processes.
    1.2 - Rolling average implemented for fluctuating buffer temperature sensor. Fixed bug where watering starts after empty/watering for cooling.
    1.3 - Implement new button for isCoolingWaterin
    1.4 - Compiler fix, watering getting stuck fix
@@ -41,17 +41,18 @@
    1.10.1 - Remove rolling average on buffer temperature sensor
    1.10.2 - Add "completed watering minutes today" display in Blynk
    1.10.3 - Scheduler bugfix
+   1.10.4 - Update for use with our own server
+   1.11 - Watering based on last week's weather and today's forecast
 */
 
-#define softwareVersion "1.10.3pre"
+#define softwareVersion "1.11pre"
 
 // BLYNK
 #define BLYNK_PRINT Serial
 #include <BlynkSimpleEthernet.h>
 #include <Ethernet.h>
 #include <SPI.h>
-#include "authtoken.h"
-char auth[] = AUTH_TOKEN;
+#include "auth.h"
 
 //Initialize libraries
 
@@ -72,9 +73,8 @@ OneWire oneWire(oneWireBus);
 DallasTemperature waterTemp(&oneWire);
 
 //Constants
-const bool debug = true;
+const bool debug = false;
 
-const int blynkSyncRate = 1000; //Sync values every second
 const unsigned long bufferEmptyingDuration = 150000; //When temperature is exceeded, empty buffer tank this long before filling it again (milliseconds)(roughly 1/3rd of tank)
 const unsigned long bufferFilledTooSoonTreshold = 60000; //When temperature exceeds the treshold again in this time after filling completed, empty than buffer completely (with 14°C water)
 
@@ -155,8 +155,8 @@ struct wateringZone {
   int id;
   int weight;
 };
-wateringZone zones[4];
-int sumWeights;
+wateringZone zones[4], inProgressZones[4];
+int sumWeights, inProgressSumWeights;
 bool isPinkActive, isGreenActive, isBlueActive, isRedActive, isCoolingWatering;
 int pinkWeight, greenWeight, blueWeight, redWeight;
 void updateZones() {
@@ -187,9 +187,9 @@ byte input_pullup[] = {47};
 
 //Globals
 
-bool cooling, tapFlow, dumping, fullEmpty, watering, syncComplete = false, wateringFinished = true, skipNextWatering, isPeriodicWateringEnabled, doneToday, begun = true, initDone;//////////////////////
-unsigned long dailyWateringAtSeconds, setWateringDuration, secondsToday;
-int wateringMinutesCompletedToday = 0;
+bool cooling, tapFlow, dumping, fullEmpty, watering, syncComplete = false, wateringFinished = true, skipNextWatering, isPeriodicWateringEnabled, doneToday = false, begun = true, initDone;//////////////////////
+unsigned long dailyWateringAtSeconds, setWateringDuration, secondsToday, minimumStartableDuration;
+int wateringMinutesCompletedToday = 0, mmToMinuteFactor, dayResetDoneForDay = 0;
 
 float bufferTreshold;
 float bufferTemp, wateringTemp;
@@ -202,10 +202,11 @@ int currentError;
 void setup() {
   //Init debug serial
   Serial.begin(9600);
-  if (debug) {
-    Serial.println(softwareVersion);
-    Serial.print("Initializing... ");
-  }
+  while (!Serial);
+
+  Serial.println();
+  Serial.println(softwareVersion);
+  Serial.print("Initializing... ");
 
   //Init sensors
   waterTemp.begin();
@@ -227,14 +228,14 @@ void setup() {
 //🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴
 
 void loop() {
-  serialRead();
+  //serialRead();
   sense();
   job();
   if (initDone) {
     jobDo();
-    serialSend();
-    static unsigned long lastBlynkSync;
-    if ((millis() - lastBlynkSync) > 1000) {
+    //serialSend();
+    static unsigned long lastBlynkSync = millis();
+    if ((millis() - lastBlynkSync) > 2000) {
       blynkSync();
       lastBlynkSync = millis();
     }
@@ -245,7 +246,8 @@ void loop() {
   if (millis() > 6000 && !initDone) {
     initDone = true;
     Serial.println("Done!");
-    Blynk.begin(auth);
+    // from auth.h
+    Blynk.begin(AUTH_TOKEN, HOST_ADDRESS, HOST_PORT);
     terminal.clear();
     terminal.print("Connected. v");
     terminal.println(softwareVersion);
@@ -257,5 +259,10 @@ void loop() {
     terminal.print("Current weekday (1 = sunday): ");
     terminal.println(weekday());
     terminal.println(year());
+
+    dayResetDoneForDay = day(now());
+
+    updateWeatherValues();
+    pushWateringTimes();
   }
 }

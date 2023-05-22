@@ -9,30 +9,11 @@ void sense() { //Read data from temperature and humidity sensors and write it to
     static bool doTempReading;
     if (doTempReading) {
       bufferTemp = waterTemp.getTempCByIndex(0);
-      /*float thisReading = waterTemp.getTempCByIndex(0);
-      static float bufferTempReadings[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-      static int bufferTempReadingIndex;
-      static float bufferTempReadingsSum;
-
-      bufferTempReadingsSum -= bufferTempReadings[bufferTempReadingIndex] / 10;
-      //delay(3000);
-      bufferTempReadings[bufferTempReadingIndex] = (int)(thisReading * 10);
-      bufferTempReadingsSum += bufferTempReadings[bufferTempReadingIndex] / 10;
-      bufferTempReadingIndex++;
-
-      if (bufferTempReadingIndex >= LEN(bufferTempReadings)) bufferTempReadingIndex = 0;
-
-      bufferTemp = (float)bufferTempReadingsSum / LEN(bufferTempReadings);
-*/
       doTempReading = false;
     } else {
       waterTemp.requestTemperatures();
       doTempReading = true;
     }
-
-    //udvarTemp = udvarDHT.readTemperature();
-    //udvarHum = udvarDHT.readHumidity();
-    //if (udvarTemp == nan || udvarHum == nan) error(1410); //read warning
 
     switch (int(bufferTemp * 10)) {
       case -1270:

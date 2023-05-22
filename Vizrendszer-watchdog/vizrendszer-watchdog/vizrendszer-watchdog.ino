@@ -11,8 +11,8 @@ Changelog:
 
 //CONFIG
 
-const unsigned long startupGracePeriodMs = 40000;
-const unsigned long resetAfterInactiveForMs = 3000;
+const unsigned long startupGracePeriodMs = 50000;
+const unsigned long resetAfterInactiveForMs = 10000;
 
 //CONSTANTS
 

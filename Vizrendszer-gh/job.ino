@@ -58,21 +58,3 @@ void job() { /////////////////////////////////////////////////////////////////
   //If end of tree reached, stop and reset.
   currentJob = waterJob{StopNext};
 }
-
-/*
- General structure
-wholeThing() {
- if (doThis()) return;
- doAfter();
-}
-
- bool doThis() {
-  if (continueCondition) {
-    doSomething();
-    return continue;
-  } else {
-    doOtherStuff;
-    return end;
-  }
- }
-*/
