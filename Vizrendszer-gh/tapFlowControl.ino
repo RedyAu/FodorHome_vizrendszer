@@ -1,14 +1,14 @@
-int tapFlowSequenceSuccesful;
-int tapFlowSequenceDuring;
+int tapFlowSequenceSuccesful = 0;
+int tapFlowSequenceDuring = 0;
 unsigned long tapFlowPressSequenceStarted;
 bool tapFlowShort;
 
 void tapFlowControl() {
   bool tapSwitch = digitalRead(tapFlowSwitch);
-  
+
   static bool tapSwitchState;
   if (tapSwitch != tapSwitchState) {
-    delay(5); //primitive debounce
+    delay(50); //primitive debounce
     tapSwitchState = tapSwitch;
     if (debug) terminal.print("Tap switch turned ");
     if (debug) terminal.println(tapSwitch ? "ON" : "OFF");
@@ -60,7 +60,10 @@ void tapSwitchOn() {
     case 2:
       if (debug) terminal.println("All three presses done.");
       unsigned long timePassed = millis() - tapFlowPressSequenceStarted;
-      if (timePassed > tapFlowSequenceMinimumTimeMillis && timePassed < tapFlowSequenceMaximumTimeMillis) tapFlow = true;
+      if (timePassed > tapFlowSequenceMinimumTimeMillis && timePassed < tapFlowSequenceMaximumTimeMillis) {
+        tapFlow = true;
+        tapFlowSequenceReset();
+      }
       else tapFlowSequenceReset();
       break;
     default:
@@ -97,5 +100,4 @@ void tapFlowSequenceReset() {
   //if (debug) terminal.println("Resetting tapFlow sequence...");
   tapFlowSequenceDuring = 0;
   tapFlowSequenceSuccesful = 0;
-  
 }

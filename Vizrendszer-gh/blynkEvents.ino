@@ -61,7 +61,6 @@ void blynkSync() {
 
 void pushWateringTimes() {
   Serial.println("push");
-  static unsigned long lastPushed = 0;
   if (!syncComplete) return;
 
   updateZones();
@@ -202,7 +201,7 @@ BLYNK_WRITE(V67) { // refresh data
 if (param.asInt()) {
   terminal.println("Last 7 day's watering minutes:");
     for (int i = 0; i < 7; i++) {
-      terminal.println(EEPROM.read(50));
+      terminal.println(EEPROM.read(50 + i));
     }
     terminal.println("---");
   sumMinutesWateredOnDays();

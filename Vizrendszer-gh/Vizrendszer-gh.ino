@@ -45,7 +45,7 @@
    1.11 - Watering based on last week's weather and today's forecast
 */
 
-#define softwareVersion "1.11pre"
+#define softwareVersion "1.11"
 
 // BLYNK
 #define BLYNK_PRINT Serial
