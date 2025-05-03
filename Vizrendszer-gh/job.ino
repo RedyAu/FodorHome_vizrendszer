@@ -1,41 +1,26 @@
-bool tapAndDump() {
+bool directJobs() {
   /* Combined function for getting water from tap and dumping from the tanks.
    * Dumping empties both tanks and than finishes.
    * Tap flow only empties watering tank, and than continues indefinetely from well.
    */
-  switch (dumping + tapFlow) {
-    case 0: //return if neither feature is activated
-      return Continue;
-      break;
-    case 2: //if both are activated, drop dumping task and throw warning
-      error(1100);
-      dumping = false;
-      break;
-  }
-  
-  if (dumping) {
-    if (levelOf(Buffer) > 0) {
-      currentJob = waterJob{NoStopNext, fromBuffer, toDump};
-      return End;
-    }
-    else currentJob = waterJob{StopNext};
-  }
 
-  if (levelOf(Watering) > 0) {
-    currentJob = waterJob{NoStopNext, fromWatering, tapFlow ? toTap : toDump};
+  if (directTap) {
+    currentJob = waterJob{NoStopNext, 0, toTap};
     return End;
-  }
-  else currentJob = waterJob{StopNext};
-  
-  if (dumping) { //if both containers emptied, dumping task is done.
-    dumping = false;
-    terminal.println("\nBoth containers empy, dumping task is done.");
-    return Continue;
-  }
-  //TapFlow continues from well after watering container is emptied.
-
-  if (tapFlow) {
-    currentJob = waterJob{NoStopNext, fromWell, toTap};
+  } else if (directGrey) {
+    currentJob = waterJob{NoStopNext, 0, toGrey};
+    return End;
+  } else if (directPink) {
+    currentJob = waterJob{NoStopNext, 0, toPink};
+    return End;
+  } else if (directGreen) {
+    currentJob = waterJob{NoStopNext, 0, toGreen};
+    return End;
+  } else if (directBlue) {
+    currentJob = waterJob{NoStopNext, 0, toBlue};
+    return End;
+  } else if (directRed) {
+    currentJob = waterJob{NoStopNext, 0, toRed};
     return End;
   } else {
     currentJob = waterJob{StopNext};
@@ -44,12 +29,16 @@ bool tapAndDump() {
   return Continue;
 }
 
+bool water(bool bufferDumping = false);
+
 void job() { /////////////////////////////////////////////////////////////////
-  //Tap/Dump
-  if (tapAndDump()) return;
+  if (pause) {
+    currentJob = waterJob{StopNext};
+    return;
+  }
   
-  //Cool
-  if (cool()) return;
+  //Tap/Dump
+  if (directJobs()) return;
   
   //Water
   if (water()) return;

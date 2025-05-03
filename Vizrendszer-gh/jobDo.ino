@@ -18,24 +18,14 @@ void jobStop() {
 }
 
 void blynkJobUpdate() {
-  Blynk.virtualWrite(fromGarage, (digitalRead(fromGarage) == RelayOn) ? 255 : 0);
-  Blynk.virtualWrite(fromBuffer, (digitalRead(fromBuffer) == RelayOn) ? 255 : 0);
-  Blynk.virtualWrite(fromWatering, (digitalRead(fromWatering) == RelayOn) ? 255 : 0);
-  Blynk.virtualWrite(fromWell, (digitalRead(fromWell) == RelayOn) ? 255 : 0);
-
-  Blynk.virtualWrite(toDump, (digitalRead(toDump) == RelayOn) ? 255 : 0);
   Blynk.virtualWrite(toTap, (digitalRead(toTap) == RelayOn) ? 255 : 0);
-  Blynk.virtualWrite(toBuffer, (digitalRead(toBuffer) == RelayOn) ? 255 : 0);
-  Blynk.virtualWrite(toWatering, (digitalRead(toWatering) == RelayOn) ? 255 : 0);
-  Blynk.virtualWrite(10, (digitalRead(toPink) == RelayOn) ? 255 : 0);
+  Blynk.virtualWrite(10, (digitalRead(toPink) == RelayOn) ? 128 : 0);
   Blynk.virtualWrite(13, (digitalRead(toGreen) == RelayOn) ? 255 : 0);
   Blynk.virtualWrite(16, (digitalRead(toBlue) == RelayOn) ? 255 : 0);
   Blynk.virtualWrite(19, (digitalRead(toRed) == RelayOn) ? 255 : 0);
+  Blynk.virtualWrite(22, (digitalRead(toGrey) == RelayOn) ? 128 : 0);
 
   Blynk.virtualWrite(mainPump, (digitalRead(mainPump) == RelayOn) ? 255 : 0);
-
-  Blynk.virtualWrite(V0, isBufferEmptying() ? 255 : 0);
-  Blynk.virtualWrite(V1, isBufferFilling() ? 255 : 0);
 }
 
 void jobDo() {
@@ -50,51 +40,14 @@ void jobDo() {
 
   terminal.print("jobDo: ");
 
-  byte from[] = {fromWell, fromBuffer, fromWatering, fromGarage};
-  digitalWriteGroup(from, LEN(from), RelayOff);
-  switch (currentJob.from) {
-    case fromWell://From Well
-      digitalWrite(fromWell, RelayOn);
-      terminal.print("well");
-      break;
-    case fromBuffer://From Buffer
-      digitalWrite(fromGarage, RelayOn);
-      digitalWrite(fromBuffer, RelayOn);
-      terminal.print("buffer tank");
-      break;
-    case fromWatering://From Watering
-      digitalWrite(fromGarage, RelayOn);
-      digitalWrite(fromWatering, RelayOn);
-      terminal.print("watering tank");
-      break;
-    case AllValves:
-      digitalWriteGroup(fromValves, LEN(fromValves), RelayOn);
-      terminal.print("all valves");
-      break;
-    default:
-      error(100);
-  }
-
   terminal.print(" -> ");
 
-  byte to[] = {toDump, toTap, toBuffer, toWatering, toPink, toGreen, toBlue, toRed};
+  byte to[] = {toTap, toPink, toGreen, toBlue, toRed, toGrey};
   digitalWriteGroup(to, LEN(to), RelayOff);
   switch (currentJob.to) {
-    case toDump:
-      digitalWrite(toDump, RelayOn);
-      terminal.print("dump");
-      break;
     case toTap:
       digitalWrite(toTap, RelayOn);
       terminal.print("tap");
-      break;
-    case toBuffer:
-      digitalWrite(toBuffer, RelayOn);
-      terminal.print("buffer tank");
-      break;
-    case toWatering:
-      digitalWrite(toWatering, RelayOn);
-      terminal.print("watering tank");
       break;
     case toPink:
       digitalWrite(toPink, RelayOn);
@@ -112,12 +65,14 @@ void jobDo() {
       digitalWrite(toRed, RelayOn);
       terminal.print("red zone");
       break;
+    case toGrey:
+      digitalWrite(toGrey, RelayOn);
+      terminal.print("grey zone");
+      break;
     case AllValves: //30-36
       digitalWriteGroup(toValves, LEN(toValves), RelayOn);
       terminal.print("all valves");
       break;
-    /*case toGrey://To Grey
-      break;*/
     default:
       error(101);
   }

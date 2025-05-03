@@ -1,5 +1,3 @@
-char strBuffer[500];
-
 float mmForWeek = 0.0, mmForToday = 0.0;
 
 int sumMinutesWateredOnDays() {
@@ -133,71 +131,76 @@ bool updateWeatherValues() {
   return Continue;
 }
 
+void doScheduledStart(bool forReal) {
+  time_t t = now();
+  sprintf(strBuffer, "\nScheduler: Set time of day reached (%d:%d).", hour(t), minute(t));
+  terminal.println(strBuffer);
+  doneToday = true;
+  Blynk.virtualWrite(V61, 255);
+
+  int i = 0;
+  while (updateWeatherValues()) {
+    terminal.println("Failed to get weather data, retrying...");
+    if (i > 5) {
+      terminal.println("After five tries, couldn't get weather data!");
+      return;
+    }
+    i++;
+  }
+
+  int sumMinutesNeeded = (int)((mmForWeek + mmForToday) * (float)mmToMinuteFactor);
+  int calculatedMinutes = sumMinutesNeeded - sumMinutesWateredOnDays();
+
+  Blynk.virtualWrite(V72, calculatedMinutes);
+
+  if (calculatedMinutes < 0) calculatedMinutes = 0;
+
+  unsigned long calculatedDuration = (unsigned long)calculatedMinutes * 60;
+  Serial.println(calculatedDuration);
+
+  if (calculatedDuration > minimumStartableDuration) {
+    if (forReal) beginWatering(calculatedDuration, Normal);
+    else {
+      sprintf(strBuffer, "Skipping watering today, as it is not necessary. Would have watered for %d seconds.\n", calculatedDuration);
+      terminal.println(strBuffer);
+      Blynk.notify(strBuffer);
+    }
+  }
+}
+
+void doDailyReset() {
+  time_t t = now();
+
+  // Roll days back by one. Save value for today.
+  terminal.println("\n\n-------\nLast 7 days' watering times:");
+  for (int i = 7 - 1; i > 0; i--) {
+    int val = EEPROM.read(50 + i - 1);
+    EEPROM.write(50 + i, val);
+    terminal.println(val);
+  }
+  EEPROM.write(50, wateringMinutesCompletedToday);
+  sprintf(strBuffer, "Minutes watered today (%d.%d.%d): %d\n", year(t), month(t), day(t) - 1, wateringMinutesCompletedToday);
+  terminal.print(strBuffer);
+  terminal.println("-------");
+
+  wateringMinutesCompletedToday = 0;
+  Blynk.virtualWrite(V65, wateringMinutesCompletedToday);
+
+  doneToday = false;
+}
+
 void scheduler() {
   time_t t = now();
   secondsToday = t % 86400;
 
   if (dayResetDoneForDay != day(t)) {
-    Serial.print("Day Reset for ");
-    Serial.println(dayResetDoneForDay);
-    Serial.println(day(t));
-
     dayResetDoneForDay = day(t);
-
-    sprintf(strBuffer, "\n\n-------\nMinutes watered today (%d.%d.%d): %d\n", year(t), month(t), day(t) - 1, wateringMinutesCompletedToday);
-    terminal.print(strBuffer);
-
-    // Roll days back by one. Save value for today.
-    EEPROM.update(50 + 7, wateringMinutesCompletedToday);
-    terminal.println("Last 6 day's watering minutes:");
-    for (int i = 0; i < 6; i++) {
-      int val = EEPROM.read(50 + i + 1);
-      EEPROM.update(50 + i, val);
-      terminal.println(val);
-    }
-    terminal.println("---");
-
-    wateringMinutesCompletedToday = 0;
-
-    doneToday = false;
+    doDailyReset();
   }
 
   if (!isPeriodicWateringEnabled) return;
 
   if ((dailyWateringAtSeconds < secondsToday) && !doneToday) {
-    sprintf(strBuffer, "\nScheduler: Set time of day reached (%d:%d).", hour(t), minute(t));
-    terminal.println(strBuffer);
-    doneToday = true;
-    Blynk.virtualWrite(V61, 255);
-
-    int i = 0;
-    while (updateWeatherValues()) {
-      terminal.println("Failed to get weather data, retrying...");
-      if (i > 5) {
-        terminal.println("After five tries, couldn't get weather data!");
-        return;
-      }
-      i++;
-    }
-
-    Serial.println("Calculating length...");
-
-    int sumMinutesNeeded = (int)((mmForWeek + mmForToday) * (float)mmToMinuteFactor);
-    Serial.println((mmForWeek + mmForToday) * (float)mmToMinuteFactor);
-    Serial.println(sumMinutesNeeded);
-    int calculatedMinutes = sumMinutesNeeded - sumMinutesWateredOnDays();
-    Serial.println(calculatedMinutes);
-    Serial.println(sumMinutesWateredOnDays());
-
-    Blynk.virtualWrite(V72, calculatedMinutes);
-
-    if (calculatedMinutes < 0) calculatedMinutes = 0;
-
-    unsigned long calculatedDuration = (unsigned long)calculatedMinutes * 60;
-    Serial.println(calculatedDuration);
-
-    if (calculatedDuration > minimumStartableDuration) {
-      beginWatering(calculatedDuration, Normal);
-    }
+    doScheduledStart(true);
   }
 }

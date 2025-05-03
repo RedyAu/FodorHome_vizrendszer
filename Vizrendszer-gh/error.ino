@@ -11,9 +11,7 @@ void error(int type) {
   if ((currentError > 999) || currentError == 0) return; //above 1000 are warnings, loop not locked
 
   currentJob = waterJob{StopNext};
-  cooling = false;
-  dumping = false;
-  tapFlow = false;
+  directTap = false;
   watering = false;
   wateringFinished = true;
   currentSession = emptySession;
@@ -24,24 +22,10 @@ void error(int type) {
   while (currentError != 0) { //alternate loop while critical error
     sense();
     job();
-    serialRead();
     Blynk.run();
   }
 }
 
 void continuityCheck() {
-  if (digitalRead(fromGarage) && (digitalRead(fromBuffer) || digitalRead(fromWatering))) bool fromGarage = true;
-  else bool fromGarage = false;
-
-  if (
-    (digitalRead(mainPump) == RelayOn //When the main pump is running, at least one input and one output valve should be open.
-     &&
-     ((digitalRead(fromWell) + fromGarage) == 0))
-    ||
-    (digitalRead(toBuffer) + digitalRead(toWatering) + digitalRead(toDump) + digitalRead(toTap) + digitalRead(toPink) + digitalRead(toGreen) + digitalRead(toBlue) + digitalRead(toRed) == 0))//todo watering sections
-  {
-    if (debug) terminal.println("debug contiCheckBAD;");
-    jobStop();
-    error(120);
-  }
+  return;
 }

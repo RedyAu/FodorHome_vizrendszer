@@ -1,5 +1,5 @@
 
-/* Written by RedyAu in 2019-2021
+/* Written by RedyAu in 2019-2021, 2023
    Versions:
    0.0 - Write out in plain text what the code should do
    0.1 - Main functions layed out to tabs
@@ -43,9 +43,13 @@
    1.10.3 - Scheduler bugfix
    1.10.4 - Update for use with our own server
    1.11 - Watering based on last week's weather and today's forecast
+   1.11.1 - Fix watering history bug
+   1.12 - Cooling improvements: FullEmpty removed, Watering directly while Dumping.
+   1.13 - Remove cooling. Remove garage tanks. Add grey watering.
+   1.13.1 - Implement watering pause, watering from tap, multiple scheduled watering.
 */
 
-#define softwareVersion "1.11"
+#define softwareVersion "1.13.1-rc2"
 
 // BLYNK
 #define BLYNK_PRINT Serial
@@ -73,40 +77,18 @@ OneWire oneWire(oneWireBus);
 DallasTemperature waterTemp(&oneWire);
 
 //Constants
-const bool debug = false;
+const bool debug = true;
 
-const unsigned long bufferEmptyingDuration = 150000; //When temperature is exceeded, empty buffer tank this long before filling it again (milliseconds)(roughly 1/3rd of tank)
-const unsigned long bufferFilledTooSoonTreshold = 60000; //When temperature exceeds the treshold again in this time after filling completed, empty than buffer completely (with 14°C water)
-
-const int tapFlowSequenceMinimumTimeMillis = 300; //Least amont of time to finish the 3-part switch sequence
-const int tapFlowSequenceMaximumTimeMillis = 3000; //Most amont of time to finish the 3-part switch sequence
-const int tapFlowSequenceFirstDoneByMillis = 1000; //Most amount of time to turn of switch after first turned on to start 3-part switch sequence
-const unsigned long tapFlowShortDurationMillis = 30 * 1000; //Amount of time to do tapFlow when proper sequence is not initiated.
-
-const int bufferLvlLower = 45; //Pin number of lower water sensor of buffer tank
-const int bufferLvlUpper = 46; //Pin number of upper water sensor of buffer tank
-const int waterLvlLower = 44; //Pin number of lower water sensor of watering tank
-const int waterLvlUpper = 39; //Pin number of upper water sensor of watering tank
 const int tapFlowSwitch = 47; //Pulled up switch next to the tap.
-const int udvarDHTpin = 48; //todo
-
-const int fromWell = 26;
-const int fromGarage = 27;
 
 const int toTap = 30;
-const int toDump = 31;
-const int toGrey = 32;
+//const int toDump = 31;
+const int toGrey = 31;
 const int toPink = 33;
 const int toGreen = 34;
 const int toBlue = 35;
 const int toRed = 36;
 const int mainPump = 28;
-
-const int toBuffer = 24;
-const int toWatering = 25;
-const int fromBuffer = 22;
-const int fromWatering = 23;
-const int flowPump = 29;
 
 const int watchdogPin = 8;
 
@@ -117,8 +99,9 @@ const int watchdogPin = 8;
 #define Buffer 0 //levelOf()
 #define Watering 1
 
-#define Continue false //program flow control of job()
-#define End true
+#define Continue 0 //program flow control of job()
+#define End 1
+#define Repeat 2
 
 #define RelayOn LOW //optocoupler relays turn on when grounded
 #define RelayOff HIGH
@@ -155,18 +138,21 @@ struct wateringZone {
   int id;
   int weight;
 };
-wateringZone zones[4], inProgressZones[4];
+wateringZone zones[6], inProgressZones[6];
 int sumWeights, inProgressSumWeights;
-bool isPinkActive, isGreenActive, isBlueActive, isRedActive, isCoolingWatering;
-int pinkWeight, greenWeight, blueWeight, redWeight;
+bool isPinkActive, isGreenActive, isBlueActive, isRedActive, isGreyActive, isTapActive;
+int pinkWeight, greenWeight, blueWeight, redWeight, greyWeight, tapWeight;
+
 void updateZones() {
   wateringZone newZones[] = {
     { isPinkActive, toPink, pinkWeight },
     { isGreenActive, toGreen, greenWeight },
     { isBlueActive, toBlue, blueWeight },
-    { isRedActive, toRed, redWeight }
+    { isRedActive, toRed, redWeight },
+    { isGreyActive, toGrey, greyWeight },
+    { isTapActive, toTap, tapWeight }
   };
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < LEN(zones); i++) {
     zones[i] = newZones[i];
   }
   sumWeights = 0;
@@ -178,8 +164,8 @@ void updateZones() {
 }
 
 
-byte fromValves[] = {fromWell, fromGarage, fromBuffer, fromWatering};
-byte toValves[] = {toWatering, toBuffer, toTap, toDump, toPink, toGreen, toBlue, toRed/*, toGrey*/};
+byte fromValves[] = {};
+byte toValves[] = {toTap, toPink, toGreen, toBlue, toRed, toGrey};
 
 byte output[] = {22, 23, 24, 25, 30, 31, 32, 33, 34, 35, 36, 37, 26, 27, 28, 29, 8};
 byte input[] = {39, 41, 44, 45, 46, A8, A0};
@@ -187,7 +173,8 @@ byte input_pullup[] = {47};
 
 //Globals
 
-bool cooling, tapFlow, dumping, fullEmpty, watering, syncComplete = false, wateringFinished = true, skipNextWatering, isPeriodicWateringEnabled, doneToday = false, begun = true, initDone;//////////////////////
+bool directTap = false, directGrey = false, directPink = false, directGreen = false, directBlue = false, directRed = false;
+bool pause = false, watering, syncComplete = false, wateringFinished = true, skipNextWatering, isPeriodicWateringEnabled, doneToday = false, begun = true, initDone;//////////////////////
 unsigned long dailyWateringAtSeconds, setWateringDuration, secondsToday, minimumStartableDuration;
 int wateringMinutesCompletedToday = 0, mmToMinuteFactor, dayResetDoneForDay = 0;
 
@@ -196,6 +183,8 @@ float bufferTemp, wateringTemp;
 float udvarTemp, udvarHum;
 
 int currentError;
+
+char strBuffer[500];
 
 //🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴🔴
 
@@ -262,7 +251,6 @@ void loop() {
 
     dayResetDoneForDay = day(now());
 
-    updateWeatherValues();
     pushWateringTimes();
   }
 }

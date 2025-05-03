@@ -14,8 +14,8 @@ const unsigned long recalculateInactiveFor = 10;  //10s
 bool canMoveStart = false;
 
 bool restoreWateringSession() {
-  return; // TODO implement
-
+  return 0; // TODO implement
+/*
   bool wateringFinishedLast = EEPROM.read(13);
   if (wateringFinishedLast) {
     terminal.println("No abandoned watering session found.");
@@ -40,7 +40,7 @@ bool restoreWateringSession() {
 
   updateZones();  // get new zones values from Blynk
   // make a copy of zones for use
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < LEN(zones); i++) {
     inProgressZones[i] = zones[i];
   }
 
@@ -48,14 +48,13 @@ bool restoreWateringSession() {
   wateringFinished = false;
   canMoveStart = currentSession.purpose == Cooling;
   
-  return true;
+  return true;*/
 }
 
 void beginWatering(unsigned long duration, bool purpose) {  //calculate one unit time from duration and set weights - then continue
-  terminal.print("\n\nWatering: Starting new watering session for ");
-  terminal.print(duration);
-  terminal.print(" seconds.\nPurpose: ");
-  terminal.println(purpose ? "Emptying the watering tank.\n" : "Watering for set duration.\n");
+  sprintf(strBuffer, "Watering: Starting new watering session for %d seconds.\nPurpose: %s", duration, purpose ? "Emptying the watering tank while cooling.\n" : "Watering for set duration.\n");
+  terminal.print(strBuffer);
+  Blynk.notify(strBuffer);
 
   currentSession = emptySession;
   currentSession.duration = duration;
@@ -63,7 +62,7 @@ void beginWatering(unsigned long duration, bool purpose) {  //calculate one unit
 
   updateZones();  // get new zones values from Blynk
   // make a copy of zones for use
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < LEN(zones); i++) {
     inProgressZones[i] = zones[i];
   }
 
@@ -89,18 +88,13 @@ void beginWatering(unsigned long duration, bool purpose) {  //calculate one unit
   EEPROM.put(23, &currentSession.duration);
 }
 
-bool water() {
+bool water(bool bufferDumping = false) {
   //if haven't beginWater yet since last done, return. (?)
   //if lastUpdate old, move startTime
   //start current section based on startTime (rollover!! difference)
   //if finished reached, running false
   if (wateringFinished || !watering) return Continue;
-  if (currentSession.purpose == Cooling && levelOf(Watering) == 0) {
-    if (!cooling) currentSession.purpose = Normal;  //If cooling is turned off, finish watering session.
-    //If reason for watering was to empty watering tank, pause watering until full again.
-    currentJob = waterJob{ StopNext };
-    return Continue;
-  }
+  currentSession.purpose = Normal;  //If cooling is turned off, finish watering session.
 
   unsigned long deadSince = now() - currentSession.lastAlive;
   if (deadSince > recalculateInactiveFor) {
@@ -136,6 +130,7 @@ bool water() {
     terminal.println(currentSession.duration);
     terminal.println(minutesWatered);
     wateringMinutesCompletedToday += minutesWatered;
+    Blynk.virtualWrite(V65, wateringMinutesCompletedToday);
 
     currentSession = emptySession;
     wateringFinished = true;
@@ -162,7 +157,7 @@ bool water() {
     if (inProgressZones[j].isActive) {
       tempCurrentUnit -= inProgressZones[j].weight;
       if (tempCurrentUnit < 0) {
-        currentJob = { NoStopNext, ((levelOf(Watering) > 0) ? fromWatering : fromWell), inProgressZones[j].id };
+        currentJob = { NoStopNext, 0, inProgressZones[j].id };
         return End;
         break;
       }
