@@ -1,1 +1,13 @@
 Vizrendszer-gh/auth.h
+
+# PlatformIO build artifacts
+.pio/
+
+# Secrets (MQTT credentials)
+Vizrendszer-ha/include/secrets.h
+
+# IDE
+.vscode/
+*.swp
+*.swo
+*~
