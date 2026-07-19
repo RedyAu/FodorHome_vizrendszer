@@ -77,7 +77,7 @@ void HaBridge::onPumpCommand(bool state, HASwitch* sender) {
 
     if (state) {
         // Pump must never run without an open zone — reject the command
-        if (relays.activeZone() == -1) {
+        if (!relays.hasAnyZoneOn()) {
             sender->setState(false);   // report back: pump stays off
             return;
         }

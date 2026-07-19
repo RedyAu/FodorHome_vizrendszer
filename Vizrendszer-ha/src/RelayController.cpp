@@ -33,12 +33,11 @@ void RelayController::begin() {
 }
 
 void RelayController::update() {
-    // Check if a pending turn-off grace period has expired
-    if (pendingOffZoneIndex_ != -1 && millis() >= pendingOffDeadline_) {
-        writeRelay(config::kZoneValvePins[pendingOffZoneIndex_], false);
+    // Check if grace period for last zone has expired
+    if (graceActive_ && millis() >= graceDeadline_) {
+        writeRelay(config::kZoneValvePins[graceZone_], false);
         pumpOffInternal();
-        activeZoneIndex_ = -1;
-        pendingOffZoneIndex_ = -1;
+        graceActive_ = false;
     }
 }
 
@@ -46,24 +45,20 @@ void RelayController::update() {
 
 void RelayController::turnOnZone(uint8_t index) {
     if (index >= config::kZoneCount) return;
+    if (activeZones_[index]) return;   // already on
 
-    // If this zone is already pending-off, cancel the timer (zone staying on)
-    if (pendingOffZoneIndex_ == index) {
-        pendingOffZoneIndex_ = -1;
-        return;
+    // If this zone was being held open by the grace timer, cancel it
+    if (graceActive_ && graceZone_ == index) {
+        graceActive_ = false;
+        return;   // zone already physically on, just cancel the pending-off
     }
 
-    // If a DIFFERENT zone is active, turn it off immediately (seamless switch)
-    if (activeZoneIndex_ != -1 && activeZoneIndex_ != index) {
-        writeRelay(config::kZoneValvePins[activeZoneIndex_], false);
-    }
+    // Cancel any grace timer (a new zone was added, we're no longer "last off")
+    cancelGrace();
 
-    // Cancel any pending turn-off (different zone or no-longer-relevant)
-    pendingOffZoneIndex_ = -1;
-
-    // Turn on the requested zone
+    // Turn on the zone relay
+    activeZones_[index] = true;
     writeRelay(config::kZoneValvePins[index], true);
-    activeZoneIndex_ = index;
 
     // Ensure pump is running
     if (!pumpOn_) {
@@ -74,26 +69,35 @@ void RelayController::turnOnZone(uint8_t index) {
 
 void RelayController::turnOffZone(uint8_t index) {
     if (index >= config::kZoneCount) return;
+    if (!activeZones_[index]) return;   // already off
 
-    // Only act if this is the active zone
-    if (activeZoneIndex_ != index) return;
+    activeZones_[index] = false;
 
-    // Start the 1-second grace timer — don't turn anything off yet
-    pendingOffZoneIndex_ = index;
-    pendingOffDeadline_  = millis() + config::kPumpOffDelayMs;
+    uint8_t remaining = countActiveZones();
+
+    if (remaining > 0) {
+        // Other zones still open — turn off this relay immediately, pump stays on
+        writeRelay(config::kZoneValvePins[index], false);
+    } else {
+        // Last zone — start grace timer, keep valve open
+        graceActive_   = true;
+        graceZone_     = index;
+        graceDeadline_ = millis() + config::kPumpOffDelayMs;
+        // Valve stays open; pump stays on until timer expires
+    }
 }
 
 void RelayController::turnOffZoneImmediate(uint8_t index) {
     if (index >= config::kZoneCount) return;
-    if (activeZoneIndex_ != index) return;
+    if (!activeZones_[index]) return;
 
-    // Cancel any pending grace timer
-    pendingOffZoneIndex_ = -1;
-
-    // Turn off zone and pump immediately
+    activeZones_[index] = false;
+    cancelGrace();
     writeRelay(config::kZoneValvePins[index], false);
-    pumpOffInternal();
-    activeZoneIndex_ = -1;
+
+    if (countActiveZones() == 0) {
+        pumpOffInternal();
+    }
 }
 
 // ── Pump Control ────────────────────────────────────
@@ -106,12 +110,12 @@ void RelayController::turnOnPump() {
 }
 
 void RelayController::turnOffPump() {
-    // Master kill: turn off pump AND any active zone immediately
-    if (activeZoneIndex_ != -1) {
-        writeRelay(config::kZoneValvePins[activeZoneIndex_], false);
-        activeZoneIndex_ = -1;
+    // Master kill: turn off ALL zones and pump immediately
+    allZonesOff();
+    for (uint8_t i = 0; i < config::kZoneCount; ++i) {
+        activeZones_[i] = false;
     }
-    pendingOffZoneIndex_ = -1;   // cancel any grace timer
+    cancelGrace();
     pumpOffInternal();
 }
 
@@ -119,10 +123,26 @@ void RelayController::turnOffPump() {
 
 bool RelayController::isZoneOn(uint8_t index) const {
     if (index >= config::kZoneCount) return false;
-    return activeZoneIndex_ == index;
+    return activeZones_[index];
+}
+
+bool RelayController::hasAnyZoneOn() const {
+    return countActiveZones() > 0;
 }
 
 // ── Internal Helpers ────────────────────────────────
+
+uint8_t RelayController::countActiveZones() const {
+    uint8_t count = 0;
+    for (uint8_t i = 0; i < config::kZoneCount; ++i) {
+        if (activeZones_[i]) ++count;
+    }
+    return count;
+}
+
+void RelayController::cancelGrace() {
+    graceActive_ = false;
+}
 
 void RelayController::writeRelay(uint8_t pin, bool on) {
     digitalWrite(pin, on ? config::kRelayOn : config::kRelayOff);
