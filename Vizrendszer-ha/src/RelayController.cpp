@@ -36,6 +36,7 @@ void RelayController::update() {
     // Check if grace period for last zone has expired
     if (graceActive_ && millis() >= graceDeadline_) {
         writeRelay(config::kZoneValvePins[graceZone_], false);
+        activeZones_[graceZone_] = false;   // only now is it physically off
         pumpOffInternal();
         graceActive_ = false;
     }
@@ -45,13 +46,15 @@ void RelayController::update() {
 
 void RelayController::turnOnZone(uint8_t index) {
     if (index >= config::kZoneCount) return;
-    if (activeZones_[index]) return;   // already on
 
-    // If this zone was being held open by the grace timer, cancel it
+    // If this zone is being held open by the grace timer, cancel the pending-off.
+    // Must check BEFORE the activeZones_ guard — the flag is still true during grace.
     if (graceActive_ && graceZone_ == index) {
         graceActive_ = false;
         return;   // zone already physically on, just cancel the pending-off
     }
+
+    if (activeZones_[index]) return;   // already on (and not in grace)
 
     // Cancel any grace timer (a new zone was added, we're no longer "last off")
     cancelGrace();
@@ -71,15 +74,15 @@ void RelayController::turnOffZone(uint8_t index) {
     if (index >= config::kZoneCount) return;
     if (!activeZones_[index]) return;   // already off
 
-    activeZones_[index] = false;
-
-    uint8_t remaining = countActiveZones();
+    uint8_t remaining = countActiveZones() - 1;  // excluding this zone
 
     if (remaining > 0) {
         // Other zones still open — turn off this relay immediately, pump stays on
+        activeZones_[index] = false;
         writeRelay(config::kZoneValvePins[index], false);
     } else {
-        // Last zone — start grace timer, keep valve open
+        // Last zone — start grace timer, keep valve AND its active flag on.
+        // activeZones_[index] stays true so MQTT reports the physical truth.
         graceActive_   = true;
         graceZone_     = index;
         graceDeadline_ = millis() + config::kPumpOffDelayMs;
@@ -141,7 +144,13 @@ uint8_t RelayController::countActiveZones() const {
 }
 
 void RelayController::cancelGrace() {
-    graceActive_ = false;
+    if (graceActive_) {
+        // Physically turn off the relay that was held open by the grace period.
+        // Also clear its active flag — only now is it truly off.
+        writeRelay(config::kZoneValvePins[graceZone_], false);
+        activeZones_[graceZone_] = false;
+        graceActive_ = false;
+    }
 }
 
 void RelayController::writeRelay(uint8_t pin, bool on) {
