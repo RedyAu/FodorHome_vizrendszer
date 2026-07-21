@@ -10,25 +10,22 @@
 /// stops toggling for ~20 seconds, the watchdog pulls the main unit's
 /// RESET pin LOW for 500ms, performing a hardware reset.
 ///
-/// The heartbeat only toggles if the MQTT connection is confirmed healthy
-/// via a round-trip ping (see setHealthy()).  If MQTT becomes unresponsive,
-/// the heartbeat stops, forcing a hardware reset.
+/// The heartbeat toggles every kWatchdogIntervalMs only while the MQTT
+/// connection is alive.  Connectivity is checked directly (inline) before
+/// each toggle — no async health flag, no ping round-trip.  If MQTT drops,
+/// the heartbeat stops immediately, forcing a hardware reset.
 class Watchdog {
 public:
     /// Set the heartbeat pin as OUTPUT.
     static void begin();
 
     /// Called every loop(). Toggles the heartbeat pin every kWatchdogIntervalMs,
-    /// but ONLY if the MQTT connection has been confirmed healthy.
+    /// but ONLY if the MQTT connection is currently alive (checked inline).
+    /// During the first kStartupGraceMs the heartbeat always toggles to give
+    /// DHCP + MQTT time to connect.
     static void update();
-
-    /// Call this periodically to report whether MQTT is alive.
-    /// If called with `false` for too long, the heartbeat stops
-    /// and the external watchdog will reset the system.
-    static void setHealthy(bool ok);
 
 private:
     static unsigned long lastToggleMs_;
-    static unsigned long lastHealthyMs_;   // last time setHealthy(true) was called
     static bool          state_;
 };

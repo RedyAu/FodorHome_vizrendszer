@@ -1,6 +1,5 @@
 #include "HaBridge.h"
 #include "RelayController.h"
-#include "Watchdog.h"
 
 HaBridge& HaBridge::instance() {
     static HaBridge bridge;
@@ -43,9 +42,6 @@ void HaBridge::begin() {
         mqtt_.begin(MQTT_BROKER_IP, MQTT_BROKER_PORT);
     }
 
-    // ── Subscribe to ping topic for health check ────
-    mqtt_.onMessage(onMqttMessage);
-
     Serial.println(F("[HaBridge] Initialized."));
 }
 
@@ -53,11 +49,12 @@ void HaBridge::update() {
     Ethernet.maintain();   // Renew DHCP lease if needed
     mqtt_.loop();          // Process MQTT messages, auto-reconnect
 
-    // MQTT round-trip health check (feeds watchdog)
-    checkMqttHealth();
-
     // Sync relay state → HA (only when changed)
     syncStates();
+}
+
+bool HaBridge::isConnected() const {
+    return mqtt_.isConnected();
 }
 
 // ── Static Callbacks ────────────────────────────────
@@ -93,50 +90,6 @@ void HaBridge::onPumpCommand(bool state, HASwitch* sender) {
     } else {
         relays.turnOffPump();          // master kill: pump + all zones off
         sender->setState(false);
-    }
-}
-
-// ── MQTT Round-Trip Health Check ────────────────────
-
-void HaBridge::checkMqttHealth() {
-    // Subscribe to our ping topic on first successful connection
-    if (mqtt_.isConnected() && !pingSubscribed_) {
-        mqtt_.subscribe("vizrendszer/ping");
-        pingSubscribed_ = true;
-    }
-    if (!mqtt_.isConnected()) {
-        pingSubscribed_ = false;
-        return;
-    }
-
-    unsigned long now = millis();
-
-    // Send a ping every kMqttPingIntervalMs (payload = unique millis ID)
-    if (now - lastPingSentMs_ >= config::kMqttPingIntervalMs) {
-        snprintf(pingId_, sizeof(pingId_), "%lu", now);
-        mqtt_.publish("vizrendszer/ping", pingId_);
-        lastPingSentMs_ = now;
-    }
-
-    // Report health to watchdog: round-trip must be within kMqttPongTimeoutMs
-    bool healthy = (lastPongReceivedMs_ > 0) && (now - lastPongReceivedMs_ < config::kMqttPongTimeoutMs);
-    Watchdog::setHealthy(healthy);
-}
-
-bool HaBridge::isMqttHealthy() const {
-    if (lastPongReceivedMs_ == 0) return false;
-    return (millis() - lastPongReceivedMs_ < config::kMqttPongTimeoutMs);
-}
-
-// ── Static Callbacks ────────────────────────────────
-
-void HaBridge::onMqttMessage(const char* topic, const uint8_t* payload, unsigned int length) {
-    (void)payload;
-    (void)length;
-    // Check if this is our own ping coming back via the broker (round-trip)
-    if (strcmp(topic, "vizrendszer/ping") == 0) {
-        // Any message on this topic confirms bidirectional MQTT is alive
-        instance().lastPongReceivedMs_ = millis();
     }
 }
 

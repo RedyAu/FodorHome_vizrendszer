@@ -80,14 +80,11 @@ constexpr const char* kZoneNames[kZoneCount] = {
 
 // ── Pump ───────────────────────────────────────────
 constexpr const char* kPumpUniqueId = "pump";
-constexpr const char* kPumpName     = "Main Pump";
+constexpr const char* kPumpName     = "Szivattyú";
 
 // ── Timing (milliseconds) ──────────────────────────
 constexpr unsigned long kWatchdogIntervalMs     = 2000;    // heartbeat toggle rate
 constexpr unsigned long kPumpOffDelayMs         = 1000;    // grace period before turning off pump
-constexpr unsigned long kMqttPingIntervalMs     = 2000;    // round-trip ping every 2s
-constexpr unsigned long kMqttPongTimeoutMs      = 4000;    // unhealthy if no pong within 4s
-constexpr unsigned long kWatchdogHealthWindowMs = 4000;    // stop heartbeat 4s after last healthy signal
 constexpr unsigned long kStartupGraceMs         = 30000;   // heartbeat always on during first 30s
 
 // ── MAC Address (from existing W5100 shield) ───────

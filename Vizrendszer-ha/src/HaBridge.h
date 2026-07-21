@@ -16,12 +16,11 @@ public:
     void begin();
 
     /// Called every loop(). Services Ethernet, MQTT, and syncs relay state to HA.
-    /// Also runs an MQTT round-trip health check (ping/pong) to verify the
-    /// connection is truly alive, and feeds the watchdog accordingly.
     void update();
 
-    /// Returns true if the MQTT round-trip health check is passing.
-    bool isMqttHealthy() const;
+    /// Returns true if the MQTT client is currently connected to the broker.
+    /// Used directly by Watchdog to decide whether to pulse the heartbeat.
+    bool isConnected() const;
 
 private:
     HaBridge() = default;
@@ -29,13 +28,9 @@ private:
     // ── Callbacks ───────────────────────────────────
     static void onZoneCommand(bool state, HASwitch* sender);
     static void onPumpCommand(bool state, HASwitch* sender);
-    static void onMqttMessage(const char* topic, const uint8_t* payload, unsigned int length);
 
     // ── State sync ──────────────────────────────────
     void syncStates();
-
-    // ── MQTT health (ping round-trip) ───────────────
-    void checkMqttHealth();
 
     // ── Ethernet / MQTT ─────────────────────────────
     EthernetClient ethClient_;
@@ -56,10 +51,4 @@ private:
     // ── Last known state (for change detection) ─────
     bool lastPumpState_ = false;
     bool lastZoneStates_[config::kZoneCount] = {false};
-
-    // ── MQTT health tracking ────────────────────────
-    unsigned long lastPingSentMs_   = 0;
-    unsigned long lastPongReceivedMs_ = 0;
-    bool          pingSubscribed_   = false;
-    char          pingId_[12]       = {0};   // unique ping ID to match responses
 };
